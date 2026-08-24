@@ -2,6 +2,7 @@ import { createDatabase, migrateDatabase } from "../data/schema.js";
 import { isDate } from "../domain/contracts.js";
 import { normalizeAmount, normalizeAsset, normalizeLiability } from "../domain/normalizers.js";
 import { AppError, ERROR_CODES, validationError } from "../errors/app-error.js";
+import { normalizeGoal } from "../domain/goals.js";
 import {
   normalizeBudget,
   normalizeRecurringTransaction,
@@ -480,6 +481,81 @@ export function createWealthRepository({
 
     async listGoals() {
       return clone(database.goals);
+    },
+
+    async getGoal(id) {
+      return clone(findRecord(database.goals, id, "Goal"));
+    },
+
+    async createGoal(input) {
+      const timestamp = clock();
+      const goal = normalizeGoal(input, { id: idGenerator(), now: timestamp });
+      return commit((draft) => {
+        draft.goals.push(goal);
+        draft.activities.push(createActivity("goal", goal.id, "goal_created", goal.currentAmount, timestamp));
+        return goal;
+      });
+    },
+
+    async updateGoal(id, changes) {
+      const current = findRecord(database.goals, id, "Goal");
+      const timestamp = clock();
+      const goal = normalizeGoal(
+        { ...current, ...changes },
+        { id, now: timestamp, createdAt: current.createdAt ?? timestamp },
+      );
+      return commit((draft) => {
+        draft.goals[draft.goals.findIndex((record) => record.id === id)] = goal;
+        draft.activities.push(createActivity("goal", id, "goal_updated", goal.currentAmount, timestamp));
+        return goal;
+      });
+    },
+
+    async completeGoal(id) {
+      const current = findRecord(database.goals, id, "Goal");
+      const timestamp = clock();
+      const goal = normalizeGoal(
+        { ...current, currentAmount: current.targetAmount, isCompleted: true },
+        { id, now: timestamp, createdAt: current.createdAt ?? timestamp },
+      );
+      return commit((draft) => {
+        draft.goals[draft.goals.findIndex((record) => record.id === id)] = goal;
+        draft.activities.push(createActivity("goal", id, "goal_completed", goal.currentAmount, timestamp));
+        return goal;
+      });
+    },
+
+    async contributeToGoal(id, input) {
+      const current = findRecord(database.goals, id, "Goal");
+      const amount = normalizeAmount(input?.amount, "amount");
+      if (amount === 0) throw validationError(["amount must be greater than zero"]);
+      if (current.isCompleted || current.currentAmount + amount > current.targetAmount) {
+        throw validationError(["contribution cannot exceed the remaining goal amount"]);
+      }
+      const timestamp = clock();
+      const goal = normalizeGoal(
+        { ...current, currentAmount: current.currentAmount + amount },
+        { id, now: timestamp, createdAt: current.createdAt ?? timestamp },
+      );
+      const contribution = {
+        id: idGenerator(), goalId: id, amount,
+        contributionDate: input?.contributionDate,
+        note: String(input?.note ?? "").trim() || null,
+        createdAt: timestamp,
+      };
+      if (!isDate(contribution.contributionDate)) {
+        throw validationError(["contributionDate must be a valid date"]);
+      }
+      return commit((draft) => {
+        draft.goals[draft.goals.findIndex((record) => record.id === id)] = goal;
+        draft.goalContributions.push(contribution);
+        draft.activities.push(createActivity("goal", id, "goal_contribution", amount, timestamp));
+        return { goal, contribution };
+      });
+    },
+
+    async listGoalContributions(goalId) {
+      return clone(database.goalContributions.filter((record) => record.goalId === goalId));
     },
 
     async listSnapshots() {

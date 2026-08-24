@@ -25,6 +25,7 @@ import {
   renderMonthlyFinanceView,
 } from "./views/monthly-finance-view.js";
 import { renderAnnualReportError, renderAnnualReportLoading, renderAnnualReportView } from "./views/annual-report-view.js";
+import { renderGoalsView } from "./views/goals-view.js";
 
 const page = document.querySelector("[data-page]");
 const topbarTitle = document.querySelector("[data-topbar-title]");
@@ -37,6 +38,8 @@ const transactionDialog = document.querySelector("[data-transaction-dialog]");
 const budgetDialog = document.querySelector("[data-budget-dialog]");
 const recurringDialog = document.querySelector("[data-recurring-dialog]");
 const reconciliationDialog = document.querySelector("[data-reconciliation-dialog]");
+const goalDialog = document.querySelector("[data-goal-dialog]");
+const contributionDialog = document.querySelector("[data-contribution-dialog]");
 const moreDialog = document.querySelector("[data-more-dialog]");
 const privacyState = createPrivacyState();
 const { wealth } = createAppServices();
@@ -193,6 +196,11 @@ async function renderCurrentView() {
       page.innerHTML = renderAnnualReportError();
       console.error(error);
     }
+  } else if (viewId === "goals") {
+    page.innerHTML = renderGoalsView({
+      goals: await wealth.listGoals(),
+      isPrivate: privacyState.value,
+    });
   } else {
     renderPlaceholder(view);
   }
@@ -367,6 +375,60 @@ async function handleRecordAction(button) {
   if (action === "deactivate") await deactivateRecord(entity, id);
 }
 
+async function openGoalEditor(id = null) {
+  const form = document.querySelector("[data-goal-form]");
+  form.reset();
+  setFormError(form);
+  field(form, "id").value = id ?? "";
+  document.querySelector("[data-goal-dialog-title]").textContent = id ? "แก้ไข Goal" : "เพิ่ม Goal";
+  if (id) {
+    const goal = await wealth.getGoal(id);
+    for (const name of ["name", "targetAmount", "currentAmount", "targetDate", "note"]) {
+      field(form, name).value = goal[name] ?? "";
+    }
+  } else field(form, "currentAmount").value = "0";
+  goalDialog.showModal();
+}
+
+async function openContribution(id) {
+  const goal = await wealth.getGoal(id);
+  const form = document.querySelector("[data-contribution-form]");
+  form.reset();
+  setFormError(form);
+  field(form, "goalId").value = id;
+  field(form, "contributionDate").value = new Date().toISOString().slice(0, 10);
+  document.querySelector("[data-contribution-title]").textContent = `เพิ่มเงิน · ${goal.name}`;
+  document.querySelector("[data-contribution-remaining]").textContent = `เหลืออีก ${formatCurrency(goal.targetAmount - goal.currentAmount)}`;
+  contributionDialog.showModal();
+}
+
+async function openGoalHistory(id) {
+  const [goal, contributions] = await Promise.all([
+    wealth.getGoal(id), wealth.listGoalContributions(id),
+  ]);
+  document.querySelector("[data-history-title]").textContent = goal.name;
+  document.querySelector("[data-history-body]").innerHTML = contributions.length
+    ? `<ul class="history-list">${contributions.slice().reverse().map((item) => `<li class="history-item"><time datetime="${item.contributionDate}">${formatDate(item.contributionDate)}</time><strong>${amountMarkup(item.amount, "เงินที่เพิ่ม")}</strong></li>`).join("")}</ul>`
+    : `<div class="panel-empty">ยังไม่มีประวัติการเพิ่มเงิน</div>`;
+  updatePrivacyUi(privacyState.value);
+  historyDialog.showModal();
+}
+
+async function handleGoalAction(button) {
+  const { goalAction, id } = button.dataset;
+  if (goalAction === "edit") await openGoalEditor(id);
+  if (goalAction === "contribute") await openContribution(id);
+  if (goalAction === "history") await openGoalHistory(id);
+  if (goalAction === "complete") {
+    const confirmed = await requestConfirmation({ title: "ทำ Goal ให้สำเร็จ", message: "ระบบจะปรับยอดปัจจุบันให้เท่ากับยอดเป้าหมาย", confirmLabel: "สำเร็จแล้ว" });
+    if (confirmed) {
+      await wealth.completeGoal(id);
+      await renderCurrentView();
+      showToast("Goal สำเร็จแล้ว");
+    }
+  }
+}
+
 function bindInteractions() {
   privacyButton.addEventListener("click", () => privacyState.toggle());
   privacyState.subscribe(async (isPrivate) => {
@@ -390,6 +452,8 @@ function bindInteractions() {
     const recurringArchive = event.target.closest("[data-recurring-archive]");
     const reconciliationOpen = event.target.closest("[data-reconciliation-open]");
     const reportExport = event.target.closest("[data-report-export]");
+    const goalOpen = event.target.closest("[data-goal-open]");
+    const goalAction = event.target.closest("[data-goal-action]");
     if (retryButton) await renderCurrentView();
     if (event.target.closest("[data-report-retry]")) await renderCurrentView();
     if (rangeButton) {
@@ -411,6 +475,8 @@ function bindInteractions() {
     if (recurringArchive) await archiveRecurring(recurringArchive.dataset.recurringArchive);
     if (reconciliationOpen) await openReconciliationDialog();
     if (reportExport) await exportAnnualReport();
+    if (goalOpen) await openGoalEditor();
+    if (goalAction) await handleGoalAction(goalAction);
     if (event.target.closest("[data-monthly-retry]")) await renderCurrentView();
     if (event.target.closest("[data-asset-close]")) assetDialog.close();
     if (event.target.closest("[data-liability-close]")) liabilityDialog.close();
@@ -420,6 +486,8 @@ function bindInteractions() {
     if (event.target.closest("[data-budget-close]")) budgetDialog.close();
     if (event.target.closest("[data-recurring-close]")) recurringDialog.close();
     if (event.target.closest("[data-reconciliation-close]")) reconciliationDialog.close();
+    if (event.target.closest("[data-goal-close]")) goalDialog.close();
+    if (event.target.closest("[data-contribution-close]")) contributionDialog.close();
     if (event.target.closest("[data-more-open]")) moreDialog.showModal();
     if (event.target.closest("[data-more-close]")) moreDialog.close();
     if (event.target.closest("[data-more-link]")) moreDialog.close();
@@ -465,6 +533,48 @@ function bindInteractions() {
   document
     .querySelector("[data-reconciliation-form]")
     .addEventListener("submit", submitReconciliationForm);
+  document.querySelector("[data-goal-form]").addEventListener("submit", submitGoalForm);
+  document
+    .querySelector("[data-contribution-form]")
+    .addEventListener("submit", submitContributionForm);
+}
+
+async function submitGoalForm(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  if (form.dataset.submitting) return;
+  setSubmitting(form, true);
+  const data = new FormData(form);
+  const input = Object.fromEntries(data.entries());
+  delete input.id;
+  try {
+    const id = data.get("id");
+    if (id) await wealth.updateGoal(id, input);
+    else await wealth.createGoal(input);
+    goalDialog.close();
+    await renderCurrentView();
+    showToast(id ? "บันทึก Goal แล้ว" : "เพิ่ม Goal แล้ว");
+  } catch (error) {
+    setFormError(form, error.details?.[0] ?? "กรุณาตรวจสอบข้อมูล");
+  } finally { setSubmitting(form, false); }
+}
+
+async function submitContributionForm(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  if (form.dataset.submitting) return;
+  setSubmitting(form, true);
+  const data = new FormData(form);
+  try {
+    await wealth.contributeToGoal(data.get("goalId"), {
+      amount: data.get("amount"), contributionDate: data.get("contributionDate"), note: data.get("note"),
+    });
+    contributionDialog.close();
+    await renderCurrentView();
+    showToast("เพิ่มเงินให้ Goal แล้ว");
+  } catch (error) {
+    setFormError(form, error.details?.[0] ?? "กรุณาตรวจสอบข้อมูล");
+  } finally { setSubmitting(form, false); }
 }
 
 async function exportAnnualReport() {

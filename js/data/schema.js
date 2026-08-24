@@ -1,6 +1,6 @@
 import { AppError, ERROR_CODES } from "../errors/app-error.js";
 
-export const DATA_SCHEMA_VERSION = 2;
+export const DATA_SCHEMA_VERSION = 3;
 export const LOCAL_STORAGE_KEY = "personal-wealth:data";
 
 const COLLECTIONS = Object.freeze([
@@ -9,6 +9,7 @@ const COLLECTIONS = Object.freeze([
   "assetValueHistory",
   "liabilityValueHistory",
   "goals",
+  "goalContributions",
   "snapshots",
   "activities",
   "transactions",

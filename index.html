@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="css/dashboard.css" />
     <link rel="stylesheet" href="css/monthly-finance.css" />
     <link rel="stylesheet" href="css/annual-report.css" />
+    <link rel="stylesheet" href="css/goals.css" />
     <link rel="stylesheet" href="css/animation.css" />
   </head>
   <body>
@@ -303,6 +304,24 @@
           <button class="button" type="submit">ตรวจยอด</button></footer>
       </form>
     </dialog>
+
+    <dialog class="dialog" data-goal-dialog aria-labelledby="goal-dialog-title"><form data-goal-form>
+      <header class="dialog__header"><h2 id="goal-dialog-title" data-goal-dialog-title>เพิ่ม Goal</h2><button class="icon-button" type="button" data-goal-close aria-label="ปิด"><span data-icon="x"></span></button></header>
+      <div class="dialog__body"><input name="id" type="hidden" />
+        <label class="field"><span class="field__label">ชื่อเป้าหมาย</span><input class="field__input" name="name" required /></label>
+        <label class="field"><span class="field__label">ยอดเป้าหมาย</span><input class="field__input" name="targetAmount" type="number" min="0.01" step="0.01" required /></label>
+        <label class="field"><span class="field__label">ยอดเริ่มต้น</span><input class="field__input" name="currentAmount" type="number" min="0" step="0.01" required /></label>
+        <label class="field"><span class="field__label">วันที่เป้าหมาย</span><input class="field__input" name="targetDate" type="date" required /></label>
+        <label class="field"><span class="field__label">หมายเหตุ</span><input class="field__input" name="note" /></label><p class="field__error" role="alert" hidden></p></div>
+      <footer class="dialog__footer"><button class="button button--secondary" type="button" data-goal-close>ยกเลิก</button><button class="button" type="submit">บันทึก</button></footer></form></dialog>
+
+    <dialog class="dialog" data-contribution-dialog aria-labelledby="contribution-dialog-title"><form data-contribution-form>
+      <header class="dialog__header"><h2 id="contribution-dialog-title" data-contribution-title>เพิ่มเงิน</h2><button class="icon-button" type="button" data-contribution-close aria-label="ปิด"><span data-icon="x"></span></button></header>
+      <div class="dialog__body"><input name="goalId" type="hidden" /><p data-contribution-remaining></p>
+        <label class="field"><span class="field__label">จำนวนเงิน</span><input class="field__input" name="amount" type="number" min="0.01" step="0.01" required /></label>
+        <label class="field"><span class="field__label">วันที่</span><input class="field__input" name="contributionDate" type="date" required /></label>
+        <label class="field"><span class="field__label">หมายเหตุ</span><input class="field__input" name="note" /></label><p class="field__error" role="alert" hidden></p></div>
+      <footer class="dialog__footer"><button class="button button--secondary" type="button" data-contribution-close>ยกเลิก</button><button class="button" type="submit">เพิ่มเงิน</button></footer></form></dialog>
 
     <dialog class="dialog" data-more-dialog aria-labelledby="more-dialog-title">
       <header class="dialog__header">

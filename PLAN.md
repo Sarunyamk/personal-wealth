@@ -169,8 +169,8 @@ Exit criteria:
 
 เป้าหมาย: ทำ workflow รองและ first-use experience ให้ MVP สมบูรณ์
 
-- [ ] Goals list และ Add/Edit/Complete Goal
-- [ ] Goal contribution และ contribution history
+- [x] Goals list และ Add/Edit/Complete Goal
+- [x] Goal contribution และ contribution history
 - [ ] Onboarding 3 ขั้นตอน พร้อม skip debt
 - [ ] Mobile Quick Add bottom sheet
 - [ ] Privacy Mode ครอบคลุมยอดเงิน, chart tooltip และ accessible text

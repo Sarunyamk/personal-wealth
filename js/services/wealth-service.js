@@ -170,5 +170,11 @@ export function createWealthService(repository) {
     reopenMonth: (month) => repository.setMonthStatus(month, "draft"),
     listSnapshots: () => repository.listSnapshots(),
     listGoals: () => repository.listGoals(),
+    getGoal: (id) => repository.getGoal(id),
+    createGoal: (input) => repository.createGoal(input),
+    updateGoal: (id, input) => repository.updateGoal(id, input),
+    completeGoal: (id) => repository.completeGoal(id),
+    contributeToGoal: (id, input) => repository.contributeToGoal(id, input),
+    listGoalContributions: (id) => repository.listGoalContributions(id),
   });
 }

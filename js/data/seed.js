@@ -2,6 +2,7 @@ export const EMPTY_SEED = Object.freeze({
   assets: Object.freeze([]),
   liabilities: Object.freeze([]),
   goals: Object.freeze([]),
+  goalContributions: Object.freeze([]),
   snapshots: Object.freeze([]),
   transactions: Object.freeze([]),
   monthlyRecords: Object.freeze([]),
@@ -10,6 +11,7 @@ export const EMPTY_SEED = Object.freeze({
 });
 
 export const DEMO_SEED = Object.freeze({
+  goalContributions: Object.freeze([]),
   transactions: Object.freeze([]),
   monthlyRecords: Object.freeze([]),
   budgets: Object.freeze([]),
