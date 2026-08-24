@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="css/layout.css" />
     <link rel="stylesheet" href="css/records.css" />
     <link rel="stylesheet" href="css/dashboard.css" />
+    <link rel="stylesheet" href="css/monthly-finance.css" />
     <link rel="stylesheet" href="css/animation.css" />
   </head>
   <body>
@@ -195,6 +196,78 @@
         </button>
       </header>
       <div class="dialog__body" data-history-body></div>
+    </dialog>
+
+    <dialog class="dialog" data-transaction-dialog aria-labelledby="transaction-dialog-title">
+      <form data-transaction-form>
+        <header class="dialog__header">
+          <h2 id="transaction-dialog-title">เพิ่มรายการ</h2>
+          <button class="icon-button" type="button" data-transaction-close aria-label="ปิด">
+            <span data-icon="x"></span>
+          </button>
+        </header>
+        <div class="dialog__body">
+          <label class="field"><span class="field__label">ประเภทรายการ</span>
+            <select class="field__input" name="type" required>
+              <option value="expense">รายจ่าย</option>
+              <option value="income">รายรับ</option>
+              <option value="transfer">เงินออม/ลงทุน</option>
+            </select>
+          </label>
+          <label class="field"><span class="field__label">ชื่อรายการ</span>
+            <input class="field__input" name="name" autocomplete="off" required />
+          </label>
+          <label class="field"><span class="field__label">หมวดหมู่</span>
+            <input class="field__input" name="category" autocomplete="off" required />
+          </label>
+          <label class="field"><span class="field__label">จำนวนเงิน</span>
+            <input class="field__input" name="amount" type="number" min="0.01" step="0.01" inputmode="decimal" required />
+          </label>
+          <label class="field"><span class="field__label">วันที่</span>
+            <input class="field__input" name="transactionDate" type="date" required />
+          </label>
+          <label class="field"><span class="field__label">หมายเหตุ</span>
+            <input class="field__input" name="note" autocomplete="off" />
+          </label>
+          <p class="field__error" role="alert" hidden></p>
+        </div>
+        <footer class="dialog__footer">
+          <button class="button button--secondary" type="button" data-transaction-close>ยกเลิก</button>
+          <button class="button" type="submit">บันทึก</button>
+        </footer>
+      </form>
+    </dialog>
+
+    <dialog class="dialog" data-budget-dialog aria-labelledby="budget-dialog-title">
+      <form data-budget-form>
+        <header class="dialog__header">
+          <h2 id="budget-dialog-title">วางแผนรายเดือน</h2>
+          <button class="icon-button" type="button" data-budget-close aria-label="ปิด">
+            <span data-icon="x"></span>
+          </button>
+        </header>
+        <div class="dialog__body">
+          <input name="month" type="hidden" />
+          <label class="field"><span class="field__label">ประเภท</span>
+            <select class="field__input" name="type" required>
+              <option value="expense">รายจ่าย</option>
+              <option value="income">รายรับ</option>
+              <option value="transfer">เงินออม/ลงทุน</option>
+            </select>
+          </label>
+          <label class="field"><span class="field__label">หมวดหมู่</span>
+            <input class="field__input" name="category" autocomplete="off" required />
+          </label>
+          <label class="field"><span class="field__label">ยอดตามแผน</span>
+            <input class="field__input" name="plannedAmount" type="number" min="0" step="0.01" required />
+          </label>
+          <p class="field__error" role="alert" hidden></p>
+        </div>
+        <footer class="dialog__footer">
+          <button class="button button--secondary" type="button" data-budget-close>ยกเลิก</button>
+          <button class="button" type="submit">บันทึกแผน</button>
+        </footer>
+      </form>
     </dialog>
 
     <dialog class="dialog" data-more-dialog aria-labelledby="more-dialog-title">

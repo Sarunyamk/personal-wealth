@@ -19,6 +19,11 @@ import {
   renderDashboardView,
 } from "./views/dashboard-view.js";
 import { renderAssetsView, renderLiabilitiesView } from "./views/records-view.js";
+import {
+  renderMonthlyFinanceError,
+  renderMonthlyFinanceLoading,
+  renderMonthlyFinanceView,
+} from "./views/monthly-finance-view.js";
 
 const page = document.querySelector("[data-page]");
 const topbarTitle = document.querySelector("[data-topbar-title]");
@@ -27,6 +32,8 @@ const assetDialog = document.querySelector("[data-asset-dialog]");
 const liabilityDialog = document.querySelector("[data-liability-dialog]");
 const quickDialog = document.querySelector("[data-quick-dialog]");
 const historyDialog = document.querySelector("[data-history-dialog]");
+const transactionDialog = document.querySelector("[data-transaction-dialog]");
+const budgetDialog = document.querySelector("[data-budget-dialog]");
 const moreDialog = document.querySelector("[data-more-dialog]");
 const privacyState = createPrivacyState();
 const { wealth } = createAppServices();
@@ -34,6 +41,7 @@ const viewState = {
   dashboard: { range: "6M" },
   assets: { query: "", category: "all" },
   liabilities: { query: "", category: "all" },
+  transactions: { month: new Date().toISOString().slice(0, 7) },
 };
 let searchRenderTimer;
 
@@ -160,6 +168,17 @@ async function renderCurrentView() {
       ...viewState.liabilities,
       isPrivate: privacyState.value,
     });
+  } else if (viewId === "transactions") {
+    page.innerHTML = renderMonthlyFinanceLoading();
+    try {
+      page.innerHTML = renderMonthlyFinanceView({
+        data: await wealth.getMonthlyFinance(viewState.transactions.month),
+        isPrivate: privacyState.value,
+      });
+    } catch (error) {
+      page.innerHTML = renderMonthlyFinanceError();
+      console.error(error);
+    }
   } else {
     renderPlaceholder(view);
   }
@@ -295,6 +314,36 @@ async function deactivateRecord(entity, id) {
   showToast("ปิดใช้งานรายการแล้ว");
 }
 
+function openTransactionDialog() {
+  const form = document.querySelector("[data-transaction-form]");
+  form.reset();
+  setFormError(form);
+  field(form, "transactionDate").value = `${viewState.transactions.month}-01`;
+  transactionDialog.showModal();
+}
+
+function openBudgetDialog(type = "expense", category = "") {
+  const form = document.querySelector("[data-budget-form]");
+  form.reset();
+  setFormError(form);
+  field(form, "month").value = viewState.transactions.month;
+  field(form, "type").value = type;
+  field(form, "category").value = category;
+  budgetDialog.showModal();
+}
+
+async function archiveTransaction(id) {
+  const confirmed = await requestConfirmation({
+    title: "เก็บรายการเข้าคลัง",
+    message: "รายการนี้จะไม่ถูกรวมในยอดรายเดือน แต่ยังเก็บไว้ในประวัติ",
+    confirmLabel: "เก็บเข้าคลัง",
+  });
+  if (!confirmed) return;
+  await wealth.deactivateTransaction(id);
+  await renderCurrentView();
+  showToast("เก็บรายการเข้าคลังแล้ว");
+}
+
 async function handleRecordAction(button) {
   const { recordAction: action, entity, id } = button.dataset;
   if (action === "edit") await openEditor(entity, id);
@@ -318,6 +367,9 @@ function bindInteractions() {
     const retryButton = event.target.closest("[data-dashboard-retry]");
     const editorButton = event.target.closest("[data-open-editor]");
     const actionButton = event.target.closest("[data-record-action]");
+    const transactionOpen = event.target.closest("[data-transaction-open]");
+    const transactionArchive = event.target.closest("[data-transaction-archive]");
+    const budgetOpen = event.target.closest("[data-budget-open]");
     if (retryButton) await renderCurrentView();
     if (rangeButton) {
       viewState.dashboard.range = rangeButton.dataset.trendRange;
@@ -325,10 +377,16 @@ function bindInteractions() {
     }
     if (editorButton) await openEditor(editorButton.dataset.openEditor);
     if (actionButton) await handleRecordAction(actionButton);
+    if (transactionOpen) openTransactionDialog();
+    if (transactionArchive) await archiveTransaction(transactionArchive.dataset.transactionArchive);
+    if (budgetOpen) openBudgetDialog(budgetOpen.dataset.type, budgetOpen.dataset.category);
+    if (event.target.closest("[data-monthly-retry]")) await renderCurrentView();
     if (event.target.closest("[data-asset-close]")) assetDialog.close();
     if (event.target.closest("[data-liability-close]")) liabilityDialog.close();
     if (event.target.closest("[data-quick-close]")) quickDialog.close();
     if (event.target.closest("[data-history-close]")) historyDialog.close();
+    if (event.target.closest("[data-transaction-close]")) transactionDialog.close();
+    if (event.target.closest("[data-budget-close]")) budgetDialog.close();
     if (event.target.closest("[data-more-open]")) moreDialog.showModal();
     if (event.target.closest("[data-more-close]")) moreDialog.close();
     if (event.target.closest("[data-more-link]")) moreDialog.close();
@@ -347,6 +405,11 @@ function bindInteractions() {
     }, 150);
   });
   page.addEventListener("change", (event) => {
+    if (event.target.matches("[data-finance-month]")) {
+      viewState.transactions.month = event.target.value;
+      renderCurrentView();
+      return;
+    }
     if (!event.target.matches("[data-record-filter]")) return;
     const viewId = getViewIdFromHash(window.location.hash);
     viewState[viewId].category = event.target.value;
@@ -356,6 +419,59 @@ function bindInteractions() {
   document.querySelector("[data-asset-form]").addEventListener("submit", submitAssetForm);
   document.querySelector("[data-liability-form]").addEventListener("submit", submitLiabilityForm);
   document.querySelector("[data-quick-form]").addEventListener("submit", submitQuickForm);
+  document
+    .querySelector("[data-transaction-form]")
+    .addEventListener("submit", submitTransactionForm);
+  document.querySelector("[data-budget-form]").addEventListener("submit", submitBudgetForm);
+}
+
+async function submitBudgetForm(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  if (form.dataset.submitting) return;
+  setSubmitting(form, true);
+  const data = new FormData(form);
+  try {
+    await wealth.upsertBudget({
+      month: data.get("month"),
+      type: data.get("type"),
+      category: data.get("category"),
+      plannedAmount: data.get("plannedAmount"),
+    });
+    budgetDialog.close();
+    await renderCurrentView();
+    showToast("บันทึกแผนแล้ว");
+  } catch (error) {
+    setFormError(form, error.details?.[0] ?? "กรุณาตรวจสอบข้อมูล");
+  } finally {
+    setSubmitting(form, false);
+  }
+}
+
+async function submitTransactionForm(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  if (form.dataset.submitting) return;
+  setSubmitting(form, true);
+  const data = new FormData(form);
+  try {
+    await wealth.createTransaction({
+      type: data.get("type"),
+      name: data.get("name"),
+      category: data.get("category"),
+      amount: data.get("amount"),
+      transactionDate: data.get("transactionDate"),
+      note: data.get("note"),
+    });
+    viewState.transactions.month = String(data.get("transactionDate")).slice(0, 7);
+    transactionDialog.close();
+    await renderCurrentView();
+    showToast("เพิ่มรายการแล้ว");
+  } catch (error) {
+    setFormError(form, error.details?.[0] ?? "กรุณาตรวจสอบข้อมูล");
+  } finally {
+    setSubmitting(form, false);
+  }
 }
 
 async function submitAssetForm(event) {

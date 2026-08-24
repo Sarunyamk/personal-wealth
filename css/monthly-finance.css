@@ -1,0 +1,168 @@
+.monthly-header,
+.monthly-header__actions,
+.monthly-meta,
+.transaction-row {
+  display: flex;
+  align-items: center;
+}
+
+.monthly-header {
+  align-items: flex-end;
+  gap: var(--space-4);
+}
+
+.monthly-header__actions {
+  width: 100%;
+  gap: var(--space-2);
+}
+
+.month-input {
+  min-width: 0;
+}
+
+.monthly-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.monthly-stat {
+  display: grid;
+  min-height: 7rem;
+  gap: var(--space-2);
+  align-content: center;
+  padding: var(--space-4);
+  border-left: 0.25rem solid var(--color-border-strong);
+}
+
+.monthly-stat--income { border-left-color: var(--color-positive); }
+.monthly-stat--expense { border-left-color: var(--color-danger); }
+.monthly-stat--savings { border-left-color: var(--color-cash); }
+.monthly-stat--transfer { border-left-color: var(--color-property); }
+
+.monthly-stat > span,
+.transaction-row__identity span,
+.transaction-row__amount span,
+.monthly-meta {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.monthly-stat strong {
+  font-size: var(--font-size-lg);
+}
+
+.monthly-meta {
+  justify-content: space-between;
+  margin-top: var(--space-5);
+}
+
+.monthly-meta p { margin: 0; }
+
+.transaction-list {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.transaction-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+
+.transaction-row__type {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-surface-subtle);
+}
+
+.transaction-row__type--income { color: var(--color-positive); }
+.transaction-row__type--expense { color: var(--color-danger); }
+.transaction-row__type--transfer { color: var(--color-property); }
+
+.transaction-row__identity,
+.transaction-row__amount {
+  display: grid;
+  min-width: 0;
+}
+
+.transaction-row__identity strong,
+.transaction-row__identity span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.transaction-row__amount {
+  text-align: right;
+}
+
+.transaction-row .icon-button {
+  grid-column: 3;
+}
+
+.monthly-empty { margin-top: var(--space-3); }
+
+.budget-section { margin-top: var(--space-6); }
+
+.budget-section__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.budget-section__header h3,
+.budget-section__header p,
+.budget-empty p { margin: 0; }
+
+.budget-section__header h3 { font-size: var(--font-size-lg); }
+.budget-section__header p { color: var(--color-text-muted); font-size: var(--font-size-sm); }
+.budget-table { overflow: hidden; }
+
+.budget-row {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(7rem, 1fr) repeat(3, minmax(5rem, 0.7fr));
+  gap: var(--space-3);
+  align-items: center;
+  min-width: 27rem;
+  padding: var(--space-3) var(--space-4);
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text);
+  text-align: right;
+  cursor: pointer;
+}
+
+.budget-table { overflow-x: auto; }
+.budget-row:last-child { border-bottom: 0; }
+.budget-row:hover:not(.budget-row--head) { background: var(--color-surface-subtle); }
+.budget-row > :first-child { display: grid; text-align: left; }
+.budget-row small { color: var(--color-text-muted); }
+.budget-row--head { color: var(--color-text-muted); font-size: var(--font-size-sm); cursor: default; }
+.budget-positive { color: var(--color-positive); }
+.budget-negative { color: var(--color-danger); }
+
+.budget-empty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+@media (min-width: 48rem) {
+  .monthly-header__actions { width: auto; }
+  .month-input { width: 10.5rem; }
+  .monthly-summary { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .transaction-row { grid-template-columns: auto minmax(0, 1fr) minmax(8rem, auto) auto; }
+  .transaction-row .icon-button { grid-column: auto; }
+}

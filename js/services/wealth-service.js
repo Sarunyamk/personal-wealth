@@ -12,6 +12,7 @@ import {
 } from "../domain/dashboard.js";
 import {
   filterTransactionsByMonth,
+  buildBudgetComparison,
   summarizeMonthlyTransactions,
 } from "../domain/monthly-finance.js";
 
@@ -111,18 +112,21 @@ export function createWealthService(repository) {
     listLiabilityValueHistory: (id) => repository.listLiabilityValueHistory(id),
     listActivities: (options) => repository.listActivities(options),
     async getMonthlyFinance(month) {
-      const transactions = filterTransactionsByMonth(
-        await repository.listTransactions(),
-        month,
-      );
+      const [allTransactions, budgets] = await Promise.all([
+        repository.listTransactions(),
+        repository.listBudgets({ month }),
+      ]);
+      const transactions = filterTransactionsByMonth(allTransactions, month);
       return Object.freeze({
         month,
         transactions,
         summary: summarizeMonthlyTransactions(transactions),
+        budgetComparison: buildBudgetComparison(budgets, transactions),
       });
     },
     createTransaction: (input) => repository.createTransaction(input),
     deactivateTransaction: (id) => repository.deactivateTransaction(id),
+    upsertBudget: (input) => repository.upsertBudget(input),
     listSnapshots: () => repository.listSnapshots(),
     listGoals: () => repository.listGoals(),
   });

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  buildBudgetComparison,
   filterTransactionsByMonth,
   normalizeTransaction,
   summarizeMonthlyTransactions,
@@ -39,4 +40,24 @@ test("transaction normalization rejects missing and zero-value inputs", () => {
       { id: "id", now: "2026-08-24T00:00:00.000Z" },
     ),
   );
+});
+
+test("budget comparison aggregates actual values without counting other types", () => {
+  const result = buildBudgetComparison(
+    [{ id: "budget", type: "expense", category: "Food", plannedAmount: 4000 }],
+    [
+      { type: "expense", category: "Food", amount: 1500, isActive: true },
+      { type: "expense", category: "food", amount: 500, isActive: true },
+      { type: "transfer", category: "Food", amount: 9000, isActive: true },
+    ],
+  );
+  assert.deepEqual(result[0], {
+    id: "budget",
+    type: "expense",
+    category: "Food",
+    plannedAmount: 4000,
+    actualAmount: 2000,
+    variance: 2000,
+  });
+  assert.equal(result[1].type, "transfer");
 });

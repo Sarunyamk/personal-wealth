@@ -140,6 +140,30 @@ test("transaction mutations persist atomically and preserve archived records", a
   );
 });
 
+test("budget upsert keeps one plan per month type and category", async () => {
+  const repository = createMemoryWealthRepository({
+    idGenerator: createIdGenerator(),
+    clock: fixedClock,
+  });
+  const first = await repository.upsertBudget({
+    month: "2026-08",
+    type: "expense",
+    category: "Food",
+    plannedAmount: 3000,
+  });
+  const updated = await repository.upsertBudget({
+    month: "2026-08",
+    type: "expense",
+    category: "food",
+    plannedAmount: 3500,
+  });
+
+  const budgets = await repository.listBudgets({ month: "2026-08" });
+  assert.equal(budgets.length, 1);
+  assert.equal(updated.id, first.id);
+  assert.equal(budgets[0].plannedAmount, 3500);
+});
+
 test("failed persistence leaves repository state unchanged", async () => {
   const storage = {
     getItem() {

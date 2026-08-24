@@ -2,7 +2,7 @@ import { createDatabase, migrateDatabase } from "../data/schema.js";
 import { isDate } from "../domain/contracts.js";
 import { normalizeAmount, normalizeAsset, normalizeLiability } from "../domain/normalizers.js";
 import { AppError, ERROR_CODES, validationError } from "../errors/app-error.js";
-import { normalizeTransaction } from "../domain/monthly-finance.js";
+import { normalizeBudget, normalizeTransaction } from "../domain/monthly-finance.js";
 
 function clone(value) {
   return structuredClone(value);
@@ -307,6 +307,35 @@ export function createWealthRepository({
           ),
         );
         return transaction;
+      });
+    },
+
+    async listBudgets({ month } = {}) {
+      const records = month
+        ? database.budgets.filter((budget) => budget.month === month)
+        : database.budgets;
+      return clone(records);
+    },
+
+    async upsertBudget(input) {
+      const existing = database.budgets.find(
+        (budget) =>
+          budget.month === input?.month &&
+          budget.type === input?.type &&
+          budget.category.toLocaleLowerCase() ===
+            String(input?.category ?? "").trim().toLocaleLowerCase(),
+      );
+      const timestamp = clock();
+      const budget = normalizeBudget(input, {
+        id: existing?.id ?? idGenerator(),
+        now: timestamp,
+        createdAt: existing?.createdAt,
+      });
+      return commit((draft) => {
+        const index = draft.budgets.findIndex((record) => record.id === budget.id);
+        if (index === -1) draft.budgets.push(budget);
+        else draft.budgets[index] = budget;
+        return budget;
       });
     },
 
