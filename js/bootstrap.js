@@ -4,10 +4,18 @@ import { createSupabaseWealthRepository } from "./repositories/supabase-wealth-r
 import { createWealthService } from "./services/wealth-service.js";
 import { createOnboardingState } from "./state/onboarding.js";
 
+export function selectWealthRepository({ supabaseClient, allowLocalDemo = false, storage } = {}) {
+  if (supabaseClient) return createSupabaseWealthRepository(supabaseClient);
+  if (allowLocalDemo) return createLocalStorageWealthRepository({ storage, seed: DEMO_SEED });
+  throw new Error("A Supabase data source is required outside explicit local demo mode.");
+}
+
 export function createAppServices({ storage = window.localStorage } = {}) {
-  const wealthRepository = globalThis.__SUPABASE_CLIENT__
-    ? createSupabaseWealthRepository(globalThis.__SUPABASE_CLIENT__)
-    : createLocalStorageWealthRepository({ storage, seed: DEMO_SEED });
+  const wealthRepository = selectWealthRepository({
+    supabaseClient: globalThis.__SUPABASE_CLIENT__,
+    allowLocalDemo: globalThis.__ALLOW_LOCAL_DEMO__ === true,
+    storage,
+  });
   return Object.freeze({
     wealth: createWealthService(wealthRepository),
     onboarding: createOnboardingState(storage),

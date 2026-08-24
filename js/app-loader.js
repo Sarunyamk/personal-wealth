@@ -7,6 +7,7 @@ import { escapeHtml } from "./utils/html.js";
 const client = createSupabaseBrowserClient();
 
 if (!client) {
+  globalThis.__ALLOW_LOCAL_DEMO__ = true;
   await import("./app.js");
 } else {
   const auth = createAuthService(client);
@@ -41,6 +42,7 @@ if (!client) {
         initialError: authErrorFromHash(window.location.hash),
       });
     } else {
+      globalThis.__ALLOW_LOCAL_DEMO__ = false;
       globalThis.__SUPABASE_CLIENT__ = client;
       auth.onAuthStateChange(({ event }) => {
         if (shouldReturnToLogin(event)) window.location.reload();

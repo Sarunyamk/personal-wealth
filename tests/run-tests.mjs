@@ -5,6 +5,7 @@ import "./auth-service.test.js";
 import "./auth-controller.test.js";
 import "./session-guard.test.js";
 import "./auth-view.test.js";
+import "./bootstrap.test.js";
 import "./contracts.test.js";
 import "./dashboard.test.js";
 import "./formatters.test.js";
