@@ -1,6 +1,6 @@
 import { createAppServices } from "./bootstrap.js";
 import { requestConfirmation } from "./components/confirmation.js";
-import { mountDashboardCharts, unmountDashboardCharts } from "./components/charts.js";
+import { mountAnnualReportCharts, mountDashboardCharts, unmountDashboardCharts } from "./components/charts.js";
 import { hydrateIcons } from "./components/icons.js";
 import { showToast } from "./components/toast.js";
 import {
@@ -24,6 +24,7 @@ import {
   renderMonthlyFinanceLoading,
   renderMonthlyFinanceView,
 } from "./views/monthly-finance-view.js";
+import { renderAnnualReportError, renderAnnualReportLoading, renderAnnualReportView } from "./views/annual-report-view.js";
 
 const page = document.querySelector("[data-page]");
 const topbarTitle = document.querySelector("[data-topbar-title]");
@@ -44,6 +45,7 @@ const viewState = {
   assets: { query: "", category: "all" },
   liabilities: { query: "", category: "all" },
   transactions: { month: new Date().toISOString().slice(0, 7) },
+  reports: { year: new Date().getFullYear() },
 };
 let searchRenderTimer;
 
@@ -133,6 +135,7 @@ async function renderCurrentView() {
   const viewId = getViewIdFromHash(window.location.hash);
   const view = getNavigationItem(viewId);
   let dashboardData;
+  let annualReportData;
   unmountDashboardCharts();
   topbarTitle.textContent = view.label;
   document.title = `${view.label} · Personal Wealth`;
@@ -181,6 +184,15 @@ async function renderCurrentView() {
       page.innerHTML = renderMonthlyFinanceError();
       console.error(error);
     }
+  } else if (viewId === "reports") {
+    page.innerHTML = renderAnnualReportLoading();
+    try {
+      annualReportData = await wealth.getAnnualReport(viewState.reports.year);
+      page.innerHTML = renderAnnualReportView({ data: annualReportData, isPrivate: privacyState.value });
+    } catch (error) {
+      page.innerHTML = renderAnnualReportError();
+      console.error(error);
+    }
   } else {
     renderPlaceholder(view);
   }
@@ -200,6 +212,7 @@ async function renderCurrentView() {
       isPrivate: privacyState.value,
     });
   }
+  if (annualReportData) mountAnnualReportCharts({ ...annualReportData, isPrivate: privacyState.value });
 }
 
 function setFormError(form, message = "") {
@@ -358,7 +371,7 @@ function bindInteractions() {
   privacyButton.addEventListener("click", () => privacyState.toggle());
   privacyState.subscribe(async (isPrivate) => {
     updatePrivacyUi(isPrivate);
-    if (getViewIdFromHash(window.location.hash) === "dashboard") {
+    if (["dashboard", "reports"].includes(getViewIdFromHash(window.location.hash))) {
       await renderCurrentView();
     }
   });
@@ -376,7 +389,9 @@ function bindInteractions() {
     const monthStatus = event.target.closest("[data-month-status]");
     const recurringArchive = event.target.closest("[data-recurring-archive]");
     const reconciliationOpen = event.target.closest("[data-reconciliation-open]");
+    const reportExport = event.target.closest("[data-report-export]");
     if (retryButton) await renderCurrentView();
+    if (event.target.closest("[data-report-retry]")) await renderCurrentView();
     if (rangeButton) {
       viewState.dashboard.range = rangeButton.dataset.trendRange;
       await renderCurrentView();
@@ -395,6 +410,7 @@ function bindInteractions() {
     if (monthStatus) await changeMonthStatus(monthStatus.dataset.monthStatus);
     if (recurringArchive) await archiveRecurring(recurringArchive.dataset.recurringArchive);
     if (reconciliationOpen) await openReconciliationDialog();
+    if (reportExport) await exportAnnualReport();
     if (event.target.closest("[data-monthly-retry]")) await renderCurrentView();
     if (event.target.closest("[data-asset-close]")) assetDialog.close();
     if (event.target.closest("[data-liability-close]")) liabilityDialog.close();
@@ -422,6 +438,11 @@ function bindInteractions() {
     }, 150);
   });
   page.addEventListener("change", (event) => {
+    if (event.target.matches("[data-report-year]")) {
+      viewState.reports.year = Number(event.target.value);
+      renderCurrentView();
+      return;
+    }
     if (event.target.matches("[data-finance-month]")) {
       viewState.transactions.month = event.target.value;
       renderCurrentView();
@@ -444,6 +465,18 @@ function bindInteractions() {
   document
     .querySelector("[data-reconciliation-form]")
     .addEventListener("submit", submitReconciliationForm);
+}
+
+async function exportAnnualReport() {
+  const csv = await wealth.exportAnnualReportCsv(viewState.reports.year);
+  const blob = new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `personal-wealth-${viewState.reports.year}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+  showToast("ดาวน์โหลด CSV แล้ว");
 }
 
 async function archiveRecurring(id) {

@@ -1,0 +1,32 @@
+.report-header { align-items: flex-end; }
+.year-input { width: 7rem; }
+.report-actions { display: flex; gap: var(--space-2); }
+.report-partial { margin: 0 0 var(--space-3); color: var(--color-text-muted); font-size: var(--font-size-sm); }
+.report-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+.report-stat { display: grid; min-height: 6.5rem; align-content: center; gap: var(--space-2); padding: var(--space-4); }
+.report-stat span, .net-worth-points span, .report-muted { color: var(--color-text-muted); font-size: var(--font-size-sm); }
+.report-stat strong { font-size: var(--font-size-lg); }
+.net-worth-points { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); margin-top: var(--space-4); padding: var(--space-4) 0; border-block: 1px solid var(--color-border); }
+.net-worth-points div { display: grid; }
+.report-charts, .report-details { display: grid; gap: var(--space-3); margin-top: var(--space-5); }
+.report-chart { min-width: 0; padding: var(--space-4); }
+.report-chart h3, .report-details h3 { margin: 0; font-size: var(--font-size-md); }
+.report-chart__frame { position: relative; height: 15rem; margin-top: var(--space-3); }
+.report-chart__frame canvas { width: 100% !important; height: 100% !important; }
+.report-details article { padding-block: var(--space-3); }
+.report-averages { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); margin: var(--space-3) 0 0; }
+.report-averages div { min-width: 0; padding: var(--space-3); background: var(--color-surface-subtle); }
+.report-averages dt { color: var(--color-text-muted); font-size: var(--font-size-xs); }
+.report-averages dd { margin: var(--space-1) 0 0; font-weight: 800; overflow-wrap: anywhere; }
+.expense-ranking { display: grid; gap: var(--space-2); margin: var(--space-3) 0 0; padding: 0; list-style: none; }
+.expense-ranking li { display: flex; justify-content: space-between; gap: var(--space-3); }
+.expense-breakdown { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: var(--space-3); align-items: center; }
+.expense-chart-frame { position: relative; height: 9rem; }
+.expense-chart-frame canvas { width: 100% !important; height: 100% !important; }
+.annual-table-wrap { margin-top: var(--space-5); overflow-x: auto; }
+.annual-table { width: 100%; min-width: 40rem; border-collapse: collapse; text-align: right; }
+.annual-table th, .annual-table td { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border); }
+.annual-table th:first-child { text-align: left; }
+.annual-table thead { color: var(--color-text-muted); font-size: var(--font-size-sm); }
+@media (min-width: 48rem) { .report-summary, .net-worth-points { grid-template-columns: repeat(4, minmax(0, 1fr)); } .report-charts, .report-details { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 32rem) { .report-header, .report-actions { align-items: stretch; flex-direction: column; } .year-input { width: 100%; } .expense-breakdown { grid-template-columns: 1fr; } }

@@ -116,3 +116,54 @@ export function mountDashboardCharts({ snapshots, allocation, isPrivate }) {
 export function unmountDashboardCharts() {
   destroyCharts();
 }
+
+export function mountAnnualReportCharts({ months, snapshots, expenseCategories, isPrivate }) {
+  destroyCharts();
+  const Chart = globalThis.Chart;
+  if (!Chart) return false;
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const sharedOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: reducedMotion ? false : { duration: 350 },
+    interaction: { intersect: false, mode: "index" },
+    plugins: { tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${moneyLabel(context.parsed.y, isPrivate)}` } } },
+    scales: { x: { grid: { display: false } }, y: { border: { display: false }, ticks: { callback: (value) => moneyLabel(value, isPrivate, true) } } },
+  };
+  const cashflowCanvas = document.querySelector("[data-annual-cashflow-chart]");
+  if (cashflowCanvas) activeCharts.push(new Chart(cashflowCanvas, {
+    type: "bar",
+    data: {
+      labels: months.map((item) => item.month.slice(5)),
+      datasets: [
+        { label: "รายรับ", data: months.map((item) => item.income), backgroundColor: color("--color-positive", "#08765e") },
+        { label: "รายจ่าย", data: months.map((item) => item.expense), backgroundColor: color("--color-danger", "#b93e4f") },
+      ],
+    }, options: sharedOptions,
+  }));
+  const networthCanvas = document.querySelector("[data-annual-networth-chart]");
+  if (networthCanvas && snapshots.length) activeCharts.push(new Chart(networthCanvas, {
+    type: "line",
+    data: { labels: snapshots.map((item) => item.snapshotDate.slice(5, 7)), datasets: [{ label: "Net Worth", data: snapshots.map((item) => item.netWorth), borderColor: color("--color-primary", "#4b47a8"), backgroundColor: color("--color-surface-accent", "#ebe8fb"), fill: true, tension: 0.3 }] },
+    options: sharedOptions,
+  }));
+  const expenseCanvas = document.querySelector("[data-annual-expense-chart]");
+  if (expenseCanvas && expenseCategories.length) {
+    const palette = ["#c94c5c", "#bd6a2a", "#2676bb", "#6d57c7", "#16856b", "#817b89"];
+    activeCharts.push(new Chart(expenseCanvas, {
+      type: "doughnut",
+      data: {
+        labels: expenseCategories.map((item) => item.category),
+        datasets: [{ data: expenseCategories.map((item) => item.amount), backgroundColor: expenseCategories.map((_, index) => palette[index % palette.length]), borderColor: color("--color-surface", "#ffffff"), borderWidth: 2 }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "62%",
+        animation: reducedMotion ? false : { duration: 350 },
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (context) => `${context.label}: ${moneyLabel(context.parsed, isPrivate)}` } } },
+      },
+    }));
+  }
+  return activeCharts.length > 0;
+}

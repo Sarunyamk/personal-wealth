@@ -152,12 +152,12 @@ Exit criteria:
 
 เป้าหมาย: รวมภาพ 12 เดือนโดยรักษาความหมายของ flow และ point-in-time balance
 
-- [ ] สรุป Income, Expense, Savings และ Savings Rate รายเดือน/ทั้งปี
-- [ ] Opening/Closing Net Worth และการเติบโตทั้งปี
-- [ ] กราฟ cash flow, expense categories และ Net Worth trend
-- [ ] annual average และ month comparison
-- [ ] export CSV ที่นำกลับไปตรวจใน Excel/Google Sheets ได้
-- [ ] year/empty/partial/error states และ report calculation tests
+- [x] สรุป Income, Expense, Savings และ Savings Rate รายเดือน/ทั้งปี
+- [x] Opening/Closing Net Worth และการเติบโตทั้งปี
+- [x] กราฟ cash flow, expense categories และ Net Worth trend
+- [x] annual average และ month comparison
+- [x] export CSV ที่นำกลับไปตรวจใน Excel/Google Sheets ได้
+- [x] year/empty/partial/error states และ report calculation tests
 
 Exit criteria:
 

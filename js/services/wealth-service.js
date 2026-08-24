@@ -16,6 +16,7 @@ import {
   buildTransferAllocation,
   summarizeMonthlyTransactions,
 } from "../domain/monthly-finance.js";
+import { buildAnnualExpenseCategories, buildAnnualReport, buildAnnualReportCsv } from "../domain/annual-report.js";
 
 const INVESTMENT_CATEGORIES = new Set(["investment", "stock", "fund", "crypto", "gold"]);
 
@@ -56,6 +57,17 @@ export function createWealthService(repository) {
       investmentAssets: records.summary.investmentAssets,
     });
     return { ...records, snapshotResult: result };
+  }
+
+  async function loadAnnualReport(year) {
+    const [transactions, snapshots] = await Promise.all([
+      repository.listTransactions(),
+      repository.listSnapshots(),
+    ]);
+    return Object.freeze({
+      ...buildAnnualReport({ year, transactions, snapshots }),
+      expenseCategories: buildAnnualExpenseCategories(transactions, year),
+    });
   }
 
   return Object.freeze({
@@ -112,6 +124,12 @@ export function createWealthService(repository) {
     updateLiabilityBalance: (id, value) => repository.updateLiabilityBalance(id, value),
     listLiabilityValueHistory: (id) => repository.listLiabilityValueHistory(id),
     listActivities: (options) => repository.listActivities(options),
+    async getAnnualReport(year) {
+      return loadAnnualReport(year);
+    },
+    async exportAnnualReportCsv(year) {
+      return buildAnnualReportCsv(await loadAnnualReport(year));
+    },
     async getMonthlyFinance(month) {
       const [allTransactions, budgets, monthlyRecord, recurringTransactions, assets] = await Promise.all([
         repository.listTransactions(),
