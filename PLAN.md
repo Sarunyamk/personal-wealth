@@ -55,13 +55,13 @@ Exit criteria:
 
 เป้าหมาย: ได้โครงแอป responsive ที่นำ component ไปใช้ซ้ำได้
 
-- [ ] Desktop sidebar และ mobile bottom navigation
-- [ ] Header, page layout, cards, buttons, inputs, modal และ bottom sheet
-- [ ] Toast, loading, error, confirmation และ empty states
-- [ ] Icon system ด้วย Lucide
-- [ ] Privacy Mode state และรูปแบบ masked amount
-- [ ] Keyboard navigation, focus state, labels และ basic accessibility
-- [ ] Responsive shell ที่ 360/768/1024/1440 px
+- [x] Desktop sidebar และ mobile bottom navigation
+- [x] Header, page layout, cards, buttons, inputs, modal และ bottom sheet
+- [x] Toast, loading, error, confirmation และ empty states
+- [x] Icon system ด้วย Lucide
+- [x] Privacy Mode state และรูปแบบ masked amount
+- [x] Keyboard navigation, focus state, labels และ basic accessibility
+- [x] Responsive shell ที่ 360/768/1024/1440 px
 
 Exit criteria:
 

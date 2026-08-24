@@ -1,0 +1,428 @@
+body {
+  background: var(--color-page);
+}
+
+.app-shell {
+  min-height: 100dvh;
+}
+
+.sidebar {
+  display: none;
+}
+
+.main-shell {
+  min-width: 0;
+  padding-bottom: calc(var(--mobile-nav-height) + var(--space-5));
+}
+
+.topbar {
+  position: sticky;
+  z-index: 20;
+  top: 0;
+  display: flex;
+  min-height: var(--topbar-height);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-page) 90%, transparent);
+  backdrop-filter: blur(1rem);
+}
+
+.topbar__title {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-heading);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbar__actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.page {
+  width: min(100%, var(--content-max));
+  margin-inline: auto;
+  padding: var(--space-5) var(--space-4) var(--space-7);
+}
+
+.page__header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.page__eyebrow,
+.page__title,
+.page__description {
+  margin: 0;
+}
+
+.page__eyebrow {
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+}
+
+.page__title {
+  margin-top: var(--space-1);
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-heading);
+}
+
+.page__description {
+  margin-top: var(--space-2);
+  color: var(--color-text-muted);
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.net-worth-card {
+  grid-column: 1 / -1;
+  padding: var(--space-5);
+  border: 0;
+  background: var(--color-net-worth-surface);
+  color: var(--color-on-primary);
+}
+
+.net-worth-card__label,
+.net-worth-card__value,
+.net-worth-card__change {
+  margin: 0;
+}
+
+.net-worth-card__label {
+  color: var(--color-on-primary-muted);
+  font-size: var(--font-size-sm);
+}
+
+.net-worth-card__value {
+  margin-top: var(--space-3);
+  font-size: clamp(1.75rem, 8vw, 2.75rem);
+  line-height: 1.1;
+}
+
+.net-worth-card__change {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-top: var(--space-3);
+  color: var(--color-net-worth-positive);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+}
+
+.metric-card {
+  padding: var(--space-4);
+}
+
+.metric-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.metric-card__icon {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-surface-accent);
+  color: var(--metric-color, var(--color-primary));
+}
+
+.metric-card__label,
+.metric-card__value,
+.metric-card__meta {
+  margin: 0;
+}
+
+.metric-card__label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.metric-card__value {
+  margin-top: var(--space-3);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-heading);
+}
+
+.metric-card__meta {
+  margin-top: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.metric-card--asset {
+  --metric-color: var(--color-asset);
+}
+
+.metric-card--liability {
+  --metric-color: var(--color-liability);
+}
+
+.metric-card--cash {
+  --metric-color: var(--color-cash);
+  grid-column: 1 / -1;
+}
+
+.chart-placeholder {
+  grid-column: 1 / -1;
+  min-height: 16rem;
+  padding: var(--space-5);
+}
+
+.chart-placeholder__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.chart-placeholder h2,
+.chart-placeholder p {
+  margin: 0;
+}
+
+.chart-placeholder h2 {
+  font-size: var(--font-size-lg);
+}
+
+.chart-placeholder p {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.chart-placeholder__canvas {
+  display: grid;
+  min-height: 10rem;
+  margin-top: var(--space-4);
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-subtle);
+  color: var(--color-text-muted);
+}
+
+.mobile-nav {
+  position: fixed;
+  z-index: 30;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  min-height: var(--mobile-nav-height);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding: var(--space-1) var(--space-2) max(var(--space-1), env(safe-area-inset-bottom));
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.mobile-nav__item {
+  display: grid;
+  min-width: 0;
+  min-height: 3.5rem;
+  place-items: center;
+  align-content: center;
+  gap: 0.125rem;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  text-decoration: none;
+}
+
+.mobile-nav__item[aria-current="page"] {
+  color: var(--color-primary);
+  font-weight: 800;
+}
+
+.more-menu {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.more-menu__item {
+  display: flex;
+  min-height: 3rem;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text);
+  text-align: left;
+}
+
+.more-menu__item:hover {
+  background: var(--color-surface-subtle);
+}
+
+.more-menu__chevron {
+  margin-left: auto;
+}
+
+@media (min-width: 48rem) {
+  .page__header {
+    flex-direction: row;
+  }
+
+  .page {
+    padding: var(--space-6);
+  }
+
+  .dashboard-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .metric-card--cash {
+    grid-column: auto;
+  }
+}
+
+@media (min-width: 64rem) {
+  .app-shell {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  }
+
+  .sidebar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    height: 100dvh;
+    flex-direction: column;
+    padding: var(--space-5) var(--space-4);
+    border-right: 1px solid var(--color-border);
+    background: var(--color-surface);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding-inline: var(--space-2);
+    color: var(--color-text);
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  .brand__mark {
+    display: grid;
+    width: 2.25rem;
+    height: 2.25rem;
+    place-items: center;
+    border-radius: var(--radius-md);
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+
+  .sidebar-nav {
+    display: grid;
+    gap: var(--space-1);
+    margin-top: var(--space-7);
+  }
+
+  .sidebar-nav__item {
+    display: flex;
+    min-height: 2.75rem;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    color: var(--color-text-muted);
+    text-decoration: none;
+  }
+
+  .sidebar-nav__item:hover {
+    background: var(--color-surface-subtle);
+    color: var(--color-text);
+  }
+
+  .sidebar-nav__item[aria-current="page"] {
+    background: var(--color-surface-accent);
+    color: var(--color-primary);
+    font-weight: 800;
+  }
+
+  .sidebar__profile {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: auto;
+    padding: var(--space-3) var(--space-2) 0;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .sidebar__profile-copy {
+    min-width: 0;
+  }
+
+  .sidebar__profile-name,
+  .sidebar__profile-meta {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sidebar__profile-name {
+    font-size: var(--font-size-sm);
+    font-weight: 800;
+  }
+
+  .sidebar__profile-meta {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+  }
+
+  .main-shell {
+    padding-bottom: 0;
+  }
+
+  .topbar {
+    padding-inline: var(--space-6);
+  }
+
+  .mobile-nav {
+    display: none;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .net-worth-card {
+    grid-column: span 6;
+  }
+
+  .metric-card {
+    grid-column: span 2;
+  }
+
+  .chart-placeholder {
+    grid-column: span 4;
+  }
+
+  .chart-placeholder--allocation {
+    grid-column: span 2;
+  }
+}

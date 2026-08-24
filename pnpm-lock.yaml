@@ -6,4 +6,17 @@ settings:
 
 importers:
 
-  .: {}
+  .:
+    dependencies:
+      lucide:
+        specifier: ^1.33.0
+        version: 1.33.0
+
+packages:
+
+  lucide@1.33.0:
+    resolution: {integrity: sha512-qfSZR1mmM65zfGeqonve67gtHBmyJtvlpdMuXiQLN04RaQmEvD0o85S9Gi+A6JQaQXpjKz5FIUBdAUEhb1Lj1Q==}
+
+snapshots:
+
+  lucide@1.33.0: {}

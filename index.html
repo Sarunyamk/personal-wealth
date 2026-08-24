@@ -8,34 +8,101 @@
     <link rel="stylesheet" href="css/variables.css" />
     <link rel="stylesheet" href="css/reset.css" />
     <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/components.css" />
+    <link rel="stylesheet" href="css/layout.css" />
+    <link rel="stylesheet" href="css/animation.css" />
   </head>
   <body>
-    <main class="foundation" aria-labelledby="page-title">
-      <p class="foundation__eyebrow">Personal Wealth</p>
-      <h1 id="page-title">Foundation พร้อมสำหรับเริ่มสร้างแอป</h1>
-      <p class="foundation__intro">
-        Phase 0 แยก theme, business rules และ data contracts ออกจากหน้าจอแล้ว
-      </p>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="เมนูหลัก">
+        <a class="brand" href="#dashboard">
+          <span class="brand__mark" data-icon="circle-dollar-sign"></span>
+          <span>Personal Wealth</span>
+        </a>
+        <nav class="sidebar-nav" data-desktop-nav></nav>
+        <div class="sidebar__profile">
+          <span class="avatar" aria-hidden="true">MK</span>
+          <span class="sidebar__profile-copy">
+            <span class="sidebar__profile-name">Mink</span>
+            <span class="sidebar__profile-meta">THB · Personal</span>
+          </span>
+        </div>
+      </aside>
 
-      <section class="summary" aria-label="ข้อมูลตัวอย่างสำหรับตรวจสอบสูตร">
-        <div class="summary__item">
-          <span>Assets</span>
-          <strong data-summary="assets">กำลังคำนวณ...</strong>
-        </div>
-        <div class="summary__item">
-          <span>Liabilities</span>
-          <strong data-summary="liabilities">กำลังคำนวณ...</strong>
-        </div>
-        <div class="summary__item summary__item--primary">
-          <span>Net Worth</span>
-          <strong data-summary="net-worth">กำลังคำนวณ...</strong>
-        </div>
-      </section>
+      <div class="main-shell">
+        <header class="topbar">
+          <h1 class="topbar__title" data-topbar-title>Dashboard</h1>
+          <div class="topbar__actions">
+            <button class="icon-button" type="button" data-privacy-toggle aria-pressed="false">
+              <span data-icon="eye-off"></span>
+              <span class="visually-hidden" data-privacy-label>ซ่อนยอดเงิน</span>
+            </button>
+            <button class="icon-button" type="button" aria-label="การแจ้งเตือน">
+              <span data-icon="bell"></span>
+            </button>
+            <span class="avatar" aria-label="บัญชี Mink">MK</span>
+          </div>
+        </header>
 
-      <p class="foundation__status" role="status" data-app-status>
-        กำลังตรวจสอบ foundation...
-      </p>
-    </main>
+        <main id="main-content" class="page" tabindex="-1" data-page></main>
+      </div>
+
+      <nav class="mobile-nav" aria-label="เมนูหลักบนมือถือ" data-mobile-nav></nav>
+    </div>
+
+    <dialog class="dialog" data-entry-dialog aria-labelledby="entry-dialog-title">
+      <form method="dialog" data-entry-form>
+        <header class="dialog__header">
+          <h2 id="entry-dialog-title">เพิ่ม Asset</h2>
+          <button class="icon-button" type="button" data-dialog-close aria-label="ปิด">
+            <span data-icon="x"></span>
+          </button>
+        </header>
+        <div class="dialog__body">
+          <label class="field">
+            <span class="field__label">ชื่อ Asset</span>
+            <input class="field__input" name="name" autocomplete="off" required />
+          </label>
+          <label class="field">
+            <span class="field__label">มูลค่าปัจจุบัน</span>
+            <input class="field__input" name="value" type="number" min="0" inputmode="decimal" required />
+          </label>
+        </div>
+        <footer class="dialog__footer">
+          <button class="button button--secondary" type="button" data-dialog-close>ยกเลิก</button>
+          <button class="button" type="submit">บันทึก</button>
+        </footer>
+      </form>
+    </dialog>
+
+    <dialog class="dialog" data-more-dialog aria-labelledby="more-dialog-title">
+      <header class="dialog__header">
+        <h2 id="more-dialog-title">เมนูเพิ่มเติม</h2>
+        <button class="icon-button" type="button" data-more-close aria-label="ปิด">
+          <span data-icon="x"></span>
+        </button>
+      </header>
+      <nav class="dialog__body more-menu" data-more-menu></nav>
+    </dialog>
+
+    <dialog class="dialog" data-confirm-dialog aria-labelledby="confirm-dialog-title">
+      <form method="dialog">
+        <header class="dialog__header">
+          <h2 id="confirm-dialog-title" data-confirm-title>ยืนยันการทำรายการ</h2>
+        </header>
+        <div class="dialog__body">
+          <p data-confirm-message></p>
+        </div>
+        <footer class="dialog__footer">
+          <button class="button button--secondary" type="submit" value="cancel">ยกเลิก</button>
+          <button class="button button--danger" type="submit" value="confirm" data-confirm-action>
+            ยืนยัน
+          </button>
+        </footer>
+      </form>
+    </dialog>
+
+    <div class="toast-region" aria-live="polite" aria-atomic="true" data-toast-region></div>
     <script type="module" src="js/app.js"></script>
   </body>
 </html>

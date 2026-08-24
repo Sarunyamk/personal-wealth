@@ -5,6 +5,7 @@
   --palette-white: #ffffff;
   --palette-ink-950: #19171f;
   --palette-ink-700: #54505d;
+  --palette-ink-500: #817b89;
   --palette-ink-200: #dfdce5;
   --palette-lavender-50: #f8f6fc;
   --palette-indigo-700: #4b47a8;
@@ -20,16 +21,29 @@
   --color-text: var(--palette-ink-950);
   --color-text-muted: var(--palette-ink-700);
   --color-border: var(--palette-ink-200);
+  --color-border-strong: #c8c3d0;
   --color-primary: var(--palette-indigo-700);
   --color-primary-strong: #393586;
+  --color-on-primary: var(--palette-white);
+  --color-on-primary-muted: #e8e5ff;
+  --color-positive: #08765e;
+  --color-danger: #b93e4f;
   --color-asset: var(--palette-mint-600);
   --color-liability: var(--palette-coral-600);
   --color-cash: var(--palette-blue-600);
   --color-property: var(--palette-orange-600);
   --color-focus: #276ed8;
+  --color-avatar: #dff1ea;
+  --color-avatar-text: #135c4b;
+  --color-skeleton: #e4e0ea;
+  --color-backdrop: rgb(25 23 31 / 48%);
+  --color-surface-accent: #ebe8fb;
+  --color-net-worth-surface: #4b47a8;
+  --color-net-worth-positive: #bff4df;
 
   --font-sans: "Noto Sans Thai", "Leelawadee UI", system-ui, sans-serif;
   --font-size-sm: 0.875rem;
+  --font-size-xs: 0.75rem;
   --font-size-md: 1rem;
   --font-size-lg: 1.25rem;
   --font-size-xl: 1.75rem;
@@ -47,8 +61,13 @@
 
   --radius-sm: 0.25rem;
   --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
   --shadow-surface: 0 0.5rem 1.5rem rgb(25 23 31 / 8%);
+  --shadow-dialog: 0 1.5rem 4rem rgb(25 23 31 / 22%);
   --content-max: 68rem;
+  --sidebar-width: 15rem;
+  --topbar-height: 4.25rem;
+  --mobile-nav-height: 4.25rem;
 
   --duration-fast: 150ms;
   --duration-normal: 250ms;

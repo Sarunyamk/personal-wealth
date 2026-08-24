@@ -9,12 +9,14 @@ JavaScript. The project currently contains the Phase 0 foundation described in
 - Node.js 20 or newer (only for the local server and development checks)
 - A current version of Chrome, Edge, Firefox or Safari
 
-No runtime or development packages need to be installed for Phase 0.
+Lucide is the only current runtime dependency. Selected icons are generated into
+a tracked SVG sprite, so the deployed app does not load icons from a CDN.
 
 ## Commands
 
 ```bash
 npm start
+npm run icons:build
 npm test
 npm run lint
 npm run format:check
