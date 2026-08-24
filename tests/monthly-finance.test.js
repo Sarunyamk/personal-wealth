@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   buildBudgetComparison,
+  buildTransferAllocation,
+  recurringDateForMonth,
   filterTransactionsByMonth,
   normalizeTransaction,
   summarizeMonthlyTransactions,
@@ -60,4 +62,22 @@ test("budget comparison aggregates actual values without counting other types", 
     variance: 2000,
   });
   assert.equal(result[1].type, "transfer");
+});
+
+test("recurring dates clamp to the final day of short months", () => {
+  assert.equal(recurringDateForMonth("2026-02", 31), "2026-02-28");
+  assert.equal(recurringDateForMonth("2028-02", 31), "2028-02-29");
+});
+
+test("transfer allocation groups categories and ignores expenses", () => {
+  const allocation = buildTransferAllocation([
+    { type: "transfer", category: "ETF", amount: 3000, isActive: true },
+    { type: "transfer", category: "etf", amount: 2000, isActive: true },
+    { type: "transfer", category: "Gold", amount: 5000, isActive: true },
+    { type: "expense", category: "Gold", amount: 9000, isActive: true },
+  ]);
+  assert.equal(allocation.length, 2);
+  assert.equal(allocation[0].amount, 5000);
+  assert.equal(allocation[0].percentage, 50);
+  assert.equal(allocation.reduce((sum, item) => sum + item.amount, 0), 10000);
 });

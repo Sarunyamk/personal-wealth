@@ -13,6 +13,7 @@ import {
 import {
   filterTransactionsByMonth,
   buildBudgetComparison,
+  buildTransferAllocation,
   summarizeMonthlyTransactions,
 } from "../domain/monthly-finance.js";
 
@@ -112,9 +113,12 @@ export function createWealthService(repository) {
     listLiabilityValueHistory: (id) => repository.listLiabilityValueHistory(id),
     listActivities: (options) => repository.listActivities(options),
     async getMonthlyFinance(month) {
-      const [allTransactions, budgets] = await Promise.all([
+      const [allTransactions, budgets, monthlyRecord, recurringTransactions, assets] = await Promise.all([
         repository.listTransactions(),
         repository.listBudgets({ month }),
+        repository.getMonthlyRecord(month),
+        repository.listRecurringTransactions(),
+        repository.listAssets(),
       ]);
       const transactions = filterTransactionsByMonth(allTransactions, month);
       return Object.freeze({
@@ -122,11 +126,30 @@ export function createWealthService(repository) {
         transactions,
         summary: summarizeMonthlyTransactions(transactions),
         budgetComparison: buildBudgetComparison(budgets, transactions),
+        transferAllocation: buildTransferAllocation(transactions),
+        monthlyRecord,
+        recurringTransactions,
+        reconciliationAssets: assets.filter(
+          (asset) => asset.liquidityLevel === "high" || asset.category === "bank-account",
+        ),
       });
     },
     createTransaction: (input) => repository.createTransaction(input),
     deactivateTransaction: (id) => repository.deactivateTransaction(id),
     upsertBudget: (input) => repository.upsertBudget(input),
+    createRecurringTransaction: (input) => repository.createRecurringTransaction(input),
+    deactivateRecurringTransaction: (id) => repository.deactivateRecurringTransaction(id),
+    setMonthReconciliation: (month, input) =>
+      repository.setMonthReconciliation(month, input),
+    async closeMonth(month) {
+      const current = await repository.getMonthlyRecord(month);
+      if (current.status === "closed") return current;
+      await repository.materializeRecurringTransactions(month);
+      const [year, monthNumber] = month.split("-").map(Number);
+      await syncMonthlySnapshot(new Date(year, monthNumber - 1, 1));
+      return repository.setMonthStatus(month, "closed");
+    },
+    reopenMonth: (month) => repository.setMonthStatus(month, "draft"),
     listSnapshots: () => repository.listSnapshots(),
     listGoals: () => repository.listGoals(),
   });

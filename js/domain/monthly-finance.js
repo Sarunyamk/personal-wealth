@@ -22,6 +22,26 @@ export function normalizeBudget(input, { id, now, createdAt = now }) {
   return Object.freeze({ id, month, type, category, plannedAmount, createdAt, updatedAt: now });
 }
 
+export function normalizeRecurringTransaction(input, { id, now, createdAt = now }) {
+  const base = normalizeTransaction(
+    { ...input, transactionDate: input?.transactionDate ?? "2000-01-01" },
+    { id, now },
+  );
+  const dayOfMonth = Number(input?.dayOfMonth);
+  if (!Number.isInteger(dayOfMonth) || dayOfMonth < 1 || dayOfMonth > 31) {
+    throw validationError(["dayOfMonth must be an integer from 1 to 31"]);
+  }
+  const { transactionDate: ignored, ...fields } = base;
+  return Object.freeze({ ...fields, dayOfMonth, createdAt, updatedAt: now });
+}
+
+export function recurringDateForMonth(month, dayOfMonth) {
+  if (!/^\d{4}-\d{2}$/.test(month)) throw validationError(["month must use YYYY-MM"]);
+  const [year, monthNumber] = month.split("-").map(Number);
+  const lastDay = new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
+  return `${month}-${String(Math.min(dayOfMonth, lastDay)).padStart(2, "0")}`;
+}
+
 export function normalizeTransaction(input, { id, now }) {
   const errors = [];
   const type = String(input?.type ?? "").trim();
@@ -118,4 +138,22 @@ export function buildBudgetComparison(budgets, transactions) {
         });
       }),
     );
+}
+
+export function buildTransferAllocation(transactions) {
+  const totals = new Map();
+  for (const transaction of transactions) {
+    if (transaction.isActive === false || transaction.type !== "transfer") continue;
+    const key = transaction.category.trim().toLocaleLowerCase();
+    const current = totals.get(key) ?? { category: transaction.category.trim(), amount: 0 };
+    current.amount += transaction.amount;
+    totals.set(key, current);
+  }
+  const total = [...totals.values()].reduce((sum, item) => sum + item.amount, 0);
+  return [...totals.values()]
+    .sort((left, right) => right.amount - left.amount)
+    .map((item) => Object.freeze({
+      ...item,
+      percentage: total > 0 ? (item.amount / total) * 100 : 0,
+    }));
 }

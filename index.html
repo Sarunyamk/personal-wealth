@@ -270,6 +270,39 @@
       </form>
     </dialog>
 
+    <dialog class="dialog" data-recurring-dialog aria-labelledby="recurring-dialog-title">
+      <form data-recurring-form>
+        <header class="dialog__header"><h2 id="recurring-dialog-title">เพิ่มรายการประจำ</h2>
+          <button class="icon-button" type="button" data-recurring-close aria-label="ปิด"><span data-icon="x"></span></button></header>
+        <div class="dialog__body">
+          <label class="field"><span class="field__label">ประเภท</span><select class="field__input" name="type" required>
+            <option value="expense">รายจ่าย</option><option value="income">รายรับ</option><option value="transfer">เงินออม/ลงทุน</option>
+          </select></label>
+          <label class="field"><span class="field__label">ชื่อรายการ</span><input class="field__input" name="name" required /></label>
+          <label class="field"><span class="field__label">หมวดหมู่</span><input class="field__input" name="category" required /></label>
+          <label class="field"><span class="field__label">จำนวนเงิน</span><input class="field__input" name="amount" type="number" min="0.01" step="0.01" required /></label>
+          <label class="field"><span class="field__label">วันที่ของเดือน</span><input class="field__input" name="dayOfMonth" type="number" min="1" max="31" required /></label>
+          <p class="field__error" role="alert" hidden></p>
+        </div>
+        <footer class="dialog__footer"><button class="button button--secondary" type="button" data-recurring-close>ยกเลิก</button>
+          <button class="button" type="submit">บันทึกรายการประจำ</button></footer>
+      </form>
+    </dialog>
+
+    <dialog class="dialog" data-reconciliation-dialog aria-labelledby="reconciliation-dialog-title">
+      <form data-reconciliation-form>
+        <header class="dialog__header"><h2 id="reconciliation-dialog-title">ตรวจยอดเงินสดปลายเดือน</h2>
+          <button class="icon-button" type="button" data-reconciliation-close aria-label="ปิด"><span data-icon="x"></span></button></header>
+        <div class="dialog__body">
+          <label class="field"><span class="field__label">Asset ที่ใช้เทียบ</span><select class="field__input" name="assetId" data-reconciliation-assets required></select></label>
+          <label class="field"><span class="field__label">ยอดปิดบัญชี</span><input class="field__input" name="closingCash" type="number" min="0" step="0.01" required /></label>
+          <p class="field__error" role="alert" hidden></p>
+        </div>
+        <footer class="dialog__footer"><button class="button button--secondary" type="button" data-reconciliation-close>ยกเลิก</button>
+          <button class="button" type="submit">ตรวจยอด</button></footer>
+      </form>
+    </dialog>
+
     <dialog class="dialog" data-more-dialog aria-labelledby="more-dialog-title">
       <header class="dialog__header">
         <h2 id="more-dialog-title">เมนูเพิ่มเติม</h2>

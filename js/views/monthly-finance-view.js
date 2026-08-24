@@ -32,6 +32,11 @@ export function renderMonthlyFinanceError() {
 
 export function renderMonthlyFinanceView({ data, isPrivate }) {
   const { month, summary, transactions, budgetComparison = [] } = data;
+  const isClosed = data.monthlyRecord?.status === "closed";
+  const reconciliation = data.monthlyRecord?.reconciliation;
+  const reconciliationAsset = data.reconciliationAssets?.find(
+    (asset) => asset.id === reconciliation?.assetId,
+  );
   const stats = [
     ["รายรับ", summary.income, "income"],
     ["รายจ่าย", summary.expense, "expense"],
@@ -57,13 +62,14 @@ export function renderMonthlyFinanceView({ data, isPrivate }) {
         .join("")}</div>`
     : `<section class="card empty-state monthly-empty"><span class="empty-state__icon">${icon("receipt-text")}</span>
         <h2>ยังไม่มีรายการในเดือนนี้</h2><p>เพิ่มรายรับ รายจ่าย หรือการโอนไปออมและลงทุน</p>
-        <button class="button" type="button" data-transaction-open>${icon("plus")}เพิ่มรายการ</button></section>`;
+        <button class="button" type="button" data-transaction-open ${isClosed ? "disabled" : ""}>${icon("plus")}เพิ่มรายการ</button></section>`;
 
   return `<header class="page__header monthly-header"><div><p class="page__eyebrow">Monthly Finance</p>
       <h2 class="page__title">รายการรายเดือน</h2></div>
       <div class="monthly-header__actions"><label class="visually-hidden" for="finance-month">เลือกเดือน</label>
         <input class="field__input month-input" id="finance-month" type="month" value="${month}" data-finance-month />
-        <button class="button" type="button" data-transaction-open>${icon("plus")}เพิ่มรายการ</button></div></header>
+        <span class="month-status month-status--${isClosed ? "closed" : "draft"}">${isClosed ? "Closed" : "Draft"}</span>
+        <button class="button" type="button" data-transaction-open ${isClosed ? "disabled" : ""}>${icon("plus")}เพิ่มรายการ</button></div></header>
     <section class="monthly-summary" aria-label="สรุปรายเดือน">${stats
       .map(
         ([label, value, kind]) => `<article class="card monthly-stat monthly-stat--${kind}">
@@ -74,20 +80,54 @@ export function renderMonthlyFinanceView({ data, isPrivate }) {
       <p>อัตราออม <strong>${summary.savingsRate === null ? "-" : formatPercent(summary.savingsRate)}</strong></p></div>
     <section class="budget-section"><header class="budget-section__header"><div>
       <h3>แผนเทียบยอดจริง</h3><p>Actual คำนวณจากรายการในเดือนนี้</p></div>
-      <button class="button button--secondary" type="button" data-budget-open>${icon("plus")}เพิ่มแผน</button></header>
+      <button class="button button--secondary" type="button" data-budget-open ${isClosed ? "disabled" : ""}>${icon("plus")}เพิ่มแผน</button></header>
       ${
         budgetComparison.length
           ? `<div class="card budget-table" role="table" aria-label="แผนเทียบยอดจริง">
             <div class="budget-row budget-row--head" role="row"><span>หมวด</span><span>แผน</span><span>จริง</span><span>ต่าง</span></div>
             ${budgetComparison
               .map(
-                (item) => `<button class="budget-row" type="button" role="row" data-budget-open data-type="${item.type}" data-category="${escapeHtml(item.category)}">
+                (item) => `<button class="budget-row" type="button" role="row" data-budget-open data-type="${item.type}" data-category="${escapeHtml(item.category)}" ${isClosed ? "disabled" : ""}>
                   <span><strong>${escapeHtml(item.category)}</strong><small>${TYPE_LABELS[item.type]}</small></span>
                   <span>${amount(item.plannedAmount, isPrivate)}</span><span>${amount(item.actualAmount, isPrivate)}</span>
                   <span class="${item.variance < 0 ? "budget-negative" : "budget-positive"}">${amount(item.variance, isPrivate)}</span></button>`,
               )
               .join("")}</div>`
-          : `<div class="card budget-empty"><p>ยังไม่มีแผนสำหรับเดือนนี้</p><button class="button button--secondary" type="button" data-budget-open>วางแผนหมวดแรก</button></div>`
+          : `<div class="card budget-empty"><p>ยังไม่มีแผนสำหรับเดือนนี้</p><button class="button button--secondary" type="button" data-budget-open ${isClosed ? "disabled" : ""}>วางแผนหมวดแรก</button></div>`
       }</section>
+    <section class="month-close card"><div><strong>รายการประจำ ${data.recurringTransactions?.length ?? 0} รายการ</strong>
+      <p>${isClosed ? "เดือนนี้ถูกปิดและสร้าง snapshot แล้ว" : "รายการประจำจะถูกเพิ่มเมื่อปิดเดือน"}</p></div>
+      <div class="month-close__actions"><button class="button button--secondary" type="button" data-recurring-open ${isClosed ? "disabled" : ""}>${icon("repeat-2")}รายการประจำ</button>
+        <button class="button" type="button" data-month-status="${isClosed ? "draft" : "closed"}">${isClosed ? "Reopen Month" : "Close Month"}</button></div></section>
+    ${
+      data.recurringTransactions?.length
+        ? `<section class="recurring-list" aria-label="รายการประจำ">${data.recurringTransactions
+            .map(
+              (item) => `<article class="card recurring-row"><div><strong>${escapeHtml(item.name)}</strong>
+                <span>${escapeHtml(item.category)} · ทุกวันที่ ${item.dayOfMonth}</span></div>
+                <strong>${amount(item.amount, isPrivate)}</strong>
+                <button class="icon-button" type="button" data-recurring-archive="${item.id}" aria-label="ปิดใช้งาน ${escapeHtml(item.name)}">${icon("archive")}</button></article>`,
+            )
+            .join("")}</section>`
+        : ""
+    }
+    <section class="allocation-section"><header><div><h3>การจัดสรรเงินออม/ลงทุน</h3><p>คำนวณจาก Transfer ในเดือนนี้</p></div></header>
+      ${
+        data.transferAllocation?.length
+          ? `<div class="card allocation-list">${data.transferAllocation
+              .map(
+                (item) => `<div class="allocation-row"><div><strong>${escapeHtml(item.category)}</strong><span>${formatPercent(item.percentage)}</span></div>
+                  <strong>${amount(item.amount, isPrivate)}</strong><div class="allocation-bar"><span style="width:${item.percentage}%"></span></div></div>`,
+              )
+              .join("")}</div>`
+          : `<div class="card budget-empty"><p>ยังไม่มี Transfer สำหรับเดือนนี้</p></div>`
+      }</section>
+    <section class="reconciliation card"><div><h3>ตรวจยอดเงินสดปลายเดือน</h3>
+      ${
+        reconciliation
+          ? `<p>${escapeHtml(reconciliationAsset?.name ?? "Asset ที่เก็บไว้")} · ยอดปิด ${amount(reconciliation.closingCash, isPrivate)}</p>
+            <strong class="${Math.abs(reconciliation.difference) < 0.005 ? "budget-positive" : "budget-negative"}">ส่วนต่าง ${amount(reconciliation.difference, isPrivate)}</strong>`
+          : `<p>${data.reconciliationAssets?.length ? "ยังไม่ได้ตรวจยอดเดือนนี้" : "เพิ่ม Cash หรือ Bank Asset ก่อนตรวจยอด"}</p>`
+      }</div><button class="button button--secondary" type="button" data-reconciliation-open ${isClosed || !data.reconciliationAssets?.length ? "disabled" : ""}>${icon("scale")}ตรวจยอด</button></section>
     ${transactionList}`;
 }

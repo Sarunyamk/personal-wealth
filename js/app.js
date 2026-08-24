@@ -34,6 +34,8 @@ const quickDialog = document.querySelector("[data-quick-dialog]");
 const historyDialog = document.querySelector("[data-history-dialog]");
 const transactionDialog = document.querySelector("[data-transaction-dialog]");
 const budgetDialog = document.querySelector("[data-budget-dialog]");
+const recurringDialog = document.querySelector("[data-recurring-dialog]");
+const reconciliationDialog = document.querySelector("[data-reconciliation-dialog]");
 const moreDialog = document.querySelector("[data-more-dialog]");
 const privacyState = createPrivacyState();
 const { wealth } = createAppServices();
@@ -370,6 +372,10 @@ function bindInteractions() {
     const transactionOpen = event.target.closest("[data-transaction-open]");
     const transactionArchive = event.target.closest("[data-transaction-archive]");
     const budgetOpen = event.target.closest("[data-budget-open]");
+    const recurringOpen = event.target.closest("[data-recurring-open]");
+    const monthStatus = event.target.closest("[data-month-status]");
+    const recurringArchive = event.target.closest("[data-recurring-archive]");
+    const reconciliationOpen = event.target.closest("[data-reconciliation-open]");
     if (retryButton) await renderCurrentView();
     if (rangeButton) {
       viewState.dashboard.range = rangeButton.dataset.trendRange;
@@ -380,6 +386,15 @@ function bindInteractions() {
     if (transactionOpen) openTransactionDialog();
     if (transactionArchive) await archiveTransaction(transactionArchive.dataset.transactionArchive);
     if (budgetOpen) openBudgetDialog(budgetOpen.dataset.type, budgetOpen.dataset.category);
+    if (recurringOpen) {
+      const form = document.querySelector("[data-recurring-form]");
+      form.reset();
+      setFormError(form);
+      recurringDialog.showModal();
+    }
+    if (monthStatus) await changeMonthStatus(monthStatus.dataset.monthStatus);
+    if (recurringArchive) await archiveRecurring(recurringArchive.dataset.recurringArchive);
+    if (reconciliationOpen) await openReconciliationDialog();
     if (event.target.closest("[data-monthly-retry]")) await renderCurrentView();
     if (event.target.closest("[data-asset-close]")) assetDialog.close();
     if (event.target.closest("[data-liability-close]")) liabilityDialog.close();
@@ -387,6 +402,8 @@ function bindInteractions() {
     if (event.target.closest("[data-history-close]")) historyDialog.close();
     if (event.target.closest("[data-transaction-close]")) transactionDialog.close();
     if (event.target.closest("[data-budget-close]")) budgetDialog.close();
+    if (event.target.closest("[data-recurring-close]")) recurringDialog.close();
+    if (event.target.closest("[data-reconciliation-close]")) reconciliationDialog.close();
     if (event.target.closest("[data-more-open]")) moreDialog.showModal();
     if (event.target.closest("[data-more-close]")) moreDialog.close();
     if (event.target.closest("[data-more-link]")) moreDialog.close();
@@ -423,6 +440,91 @@ function bindInteractions() {
     .querySelector("[data-transaction-form]")
     .addEventListener("submit", submitTransactionForm);
   document.querySelector("[data-budget-form]").addEventListener("submit", submitBudgetForm);
+  document.querySelector("[data-recurring-form]").addEventListener("submit", submitRecurringForm);
+  document
+    .querySelector("[data-reconciliation-form]")
+    .addEventListener("submit", submitReconciliationForm);
+}
+
+async function archiveRecurring(id) {
+  const confirmed = await requestConfirmation({
+    title: "ปิดรายการประจำ",
+    message: "รายการที่สร้างไปแล้วจะยังอยู่ แต่เดือนถัดไปจะไม่สร้างรายการนี้อีก",
+    confirmLabel: "ปิดใช้งาน",
+  });
+  if (!confirmed) return;
+  await wealth.deactivateRecurringTransaction(id);
+  await renderCurrentView();
+  showToast("ปิดรายการประจำแล้ว");
+}
+
+async function openReconciliationDialog() {
+  const form = document.querySelector("[data-reconciliation-form]");
+  form.reset();
+  setFormError(form);
+  const data = await wealth.getMonthlyFinance(viewState.transactions.month);
+  const select = field(form, "assetId");
+  select.innerHTML = data.reconciliationAssets
+    .map((asset) => `<option value="${asset.id}">${escapeHtml(asset.name)}</option>`)
+    .join("");
+  const current = data.monthlyRecord.reconciliation;
+  if (current) {
+    select.value = current.assetId;
+    field(form, "closingCash").value = current.closingCash;
+  }
+  reconciliationDialog.showModal();
+}
+
+async function submitReconciliationForm(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  if (form.dataset.submitting) return;
+  setSubmitting(form, true);
+  const data = new FormData(form);
+  try {
+    await wealth.setMonthReconciliation(viewState.transactions.month, {
+      assetId: data.get("assetId"),
+      closingCash: data.get("closingCash"),
+    });
+    reconciliationDialog.close();
+    await renderCurrentView();
+    showToast("บันทึกผลตรวจยอดแล้ว");
+  } catch (error) {
+    setFormError(form, error.details?.[0] ?? "กรุณาตรวจสอบข้อมูล");
+  } finally {
+    setSubmitting(form, false);
+  }
+}
+
+async function changeMonthStatus(status) {
+  const confirmed = await requestConfirmation({
+    title: status === "closed" ? "ปิดเดือน" : "เปิดเดือนอีกครั้ง",
+    message: status === "closed" ? "ระบบจะเพิ่มรายการประจำและสร้าง Net Worth snapshot" : "คุณจะกลับมาเพิ่มหรือแก้รายการในเดือนนี้ได้",
+    confirmLabel: status === "closed" ? "ปิดเดือน" : "เปิดเดือน",
+  });
+  if (!confirmed) return;
+  if (status === "closed") await wealth.closeMonth(viewState.transactions.month);
+  else await wealth.reopenMonth(viewState.transactions.month);
+  await renderCurrentView();
+  showToast(status === "closed" ? "ปิดเดือนแล้ว" : "เปิดเดือนแล้ว");
+}
+
+async function submitRecurringForm(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  if (form.dataset.submitting) return;
+  setSubmitting(form, true);
+  const data = new FormData(form);
+  try {
+    await wealth.createRecurringTransaction(Object.fromEntries(data.entries()));
+    recurringDialog.close();
+    await renderCurrentView();
+    showToast("เพิ่มรายการประจำแล้ว");
+  } catch (error) {
+    setFormError(form, error.details?.[0] ?? "กรุณาตรวจสอบข้อมูล");
+  } finally {
+    setSubmitting(form, false);
+  }
 }
 
 async function submitBudgetForm(event) {

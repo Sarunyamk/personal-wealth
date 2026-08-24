@@ -132,14 +132,14 @@ Exit criteria:
 
 เป้าหมาย: แทน spreadsheet รายเดือนด้วยข้อมูลที่แยกประเภทถูกต้องและปิดเดือนได้
 
-- [ ] Month selector และสถานะเดือน Draft/Closed
+- [x] Month selector และสถานะเดือน Draft/Closed
 - [x] รายการ Income, Expense และ Transfer พร้อมหมวดหมู่
 - [x] Budget plan เทียบ Actual โดย Actual คำนวณจากรายการเท่านั้น
-- [ ] Recurring items สำหรับรายการที่เกิดซ้ำทุกเดือน
+- [x] Recurring items สำหรับรายการที่เกิดซ้ำทุกเดือน
 - [x] Monthly cash flow, savings amount และ savings rate
-- [ ] Allocation summary แยกเงินออม/ลงทุนออกจากค่าใช้จ่าย
-- [ ] Reconciliation เทียบ closing cash กับยอด Asset ที่เลือก
-- [ ] Close/Reopen Month พร้อมสร้าง monthly snapshot แบบ idempotent
+- [x] Allocation summary แยกเงินออม/ลงทุนออกจากค่าใช้จ่าย
+- [x] Reconciliation เทียบ closing cash กับยอด Asset ที่เลือก
+- [x] Close/Reopen Month พร้อมสร้าง monthly snapshot แบบ idempotent
 - [x] empty/loading/error states และ focused tests สำหรับ calculation/mutation
 
 Exit criteria:

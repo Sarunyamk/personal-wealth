@@ -2,7 +2,12 @@ import { createDatabase, migrateDatabase } from "../data/schema.js";
 import { isDate } from "../domain/contracts.js";
 import { normalizeAmount, normalizeAsset, normalizeLiability } from "../domain/normalizers.js";
 import { AppError, ERROR_CODES, validationError } from "../errors/app-error.js";
-import { normalizeBudget, normalizeTransaction } from "../domain/monthly-finance.js";
+import {
+  normalizeBudget,
+  normalizeRecurringTransaction,
+  normalizeTransaction,
+  recurringDateForMonth,
+} from "../domain/monthly-finance.js";
 
 function clone(value) {
   return structuredClone(value);
@@ -60,6 +65,14 @@ export function createWealthRepository({
       value,
       createdAt,
     };
+  }
+
+  function assertMonthOpen(month) {
+    if (database.monthlyRecords.some((record) => record.month === month && record.status === "closed")) {
+      throw new AppError(ERROR_CODES.VALIDATION, "This month is closed.", {
+        details: ["Reopen the month before changing its records"],
+      });
+    }
   }
 
   return Object.freeze({
@@ -271,6 +284,7 @@ export function createWealthRepository({
     },
 
     async createTransaction(input) {
+      assertMonthOpen(String(input?.transactionDate ?? "").slice(0, 7));
       const timestamp = clock();
       const transaction = normalizeTransaction(input, {
         id: idGenerator(),
@@ -292,6 +306,8 @@ export function createWealthRepository({
     },
 
     async deactivateTransaction(id) {
+      const current = findRecord(database.transactions, id, "Transaction");
+      assertMonthOpen(current.transactionDate.slice(0, 7));
       const timestamp = clock();
       return commit((draft) => {
         const transaction = findRecord(draft.transactions, id, "Transaction");
@@ -318,6 +334,7 @@ export function createWealthRepository({
     },
 
     async upsertBudget(input) {
+      assertMonthOpen(input?.month);
       const existing = database.budgets.find(
         (budget) =>
           budget.month === input?.month &&
@@ -336,6 +353,128 @@ export function createWealthRepository({
         if (index === -1) draft.budgets.push(budget);
         else draft.budgets[index] = budget;
         return budget;
+      });
+    },
+
+    async listRecurringTransactions({ includeInactive = false } = {}) {
+      const records = includeInactive
+        ? database.recurringTransactions
+        : database.recurringTransactions.filter((record) => record.isActive);
+      return clone(records);
+    },
+
+    async createRecurringTransaction(input) {
+      const timestamp = clock();
+      const recurring = normalizeRecurringTransaction(input, {
+        id: idGenerator(),
+        now: timestamp,
+      });
+      return commit((draft) => {
+        draft.recurringTransactions.push(recurring);
+        return recurring;
+      });
+    },
+
+    async deactivateRecurringTransaction(id) {
+      const timestamp = clock();
+      return commit((draft) => {
+        const recurring = findRecord(draft.recurringTransactions, id, "Recurring transaction");
+        recurring.isActive = false;
+        recurring.updatedAt = timestamp;
+        return recurring;
+      });
+    },
+
+    async materializeRecurringTransactions(month) {
+      assertMonthOpen(month);
+      const existingSources = new Set(
+        database.transactions
+          .filter((record) => record.transactionDate.slice(0, 7) === month)
+          .map((record) => record.sourceRecurringId)
+          .filter(Boolean),
+      );
+      const timestamp = clock();
+      const pending = database.recurringTransactions
+        .filter((record) => record.isActive && !existingSources.has(record.id))
+        .map((record) => ({
+          ...normalizeTransaction(
+            {
+              ...record,
+              transactionDate: recurringDateForMonth(month, record.dayOfMonth),
+            },
+            { id: idGenerator(), now: timestamp },
+          ),
+          sourceRecurringId: record.id,
+        }));
+      if (!pending.length) return [];
+      return commit((draft) => {
+        draft.transactions.push(...pending);
+        return pending;
+      });
+    },
+
+    async getMonthlyRecord(month) {
+      return clone(
+        database.monthlyRecords.find((record) => record.month === month) ?? {
+          month,
+          status: "draft",
+          closedAt: null,
+        },
+      );
+    },
+
+    async setMonthStatus(month, status) {
+      if (!/^\d{4}-\d{2}$/.test(month) || !["draft", "closed"].includes(status)) {
+        throw validationError(["month or status is invalid"]);
+      }
+      const timestamp = clock();
+      return commit((draft) => {
+        const index = draft.monthlyRecords.findIndex((record) => record.month === month);
+        const existing = index === -1 ? null : draft.monthlyRecords[index];
+        const record = {
+          ...existing,
+          id: existing?.id ?? idGenerator(),
+          month,
+          status,
+          closedAt: status === "closed" ? (existing?.closedAt ?? timestamp) : null,
+          createdAt: existing?.createdAt ?? timestamp,
+          updatedAt: timestamp,
+        };
+        if (index === -1) draft.monthlyRecords.push(record);
+        else draft.monthlyRecords[index] = record;
+        return record;
+      });
+    },
+
+    async setMonthReconciliation(month, input) {
+      assertMonthOpen(month);
+      if (!/^\d{4}-\d{2}$/.test(month)) throw validationError(["month must use YYYY-MM"]);
+      const asset = findRecord(database.assets, input?.assetId, "Asset");
+      if (!asset.isActive) throw validationError(["asset must be active"]);
+      const closingCash = normalizeAmount(input?.closingCash, "closingCash");
+      const timestamp = clock();
+      return commit((draft) => {
+        const index = draft.monthlyRecords.findIndex((record) => record.month === month);
+        const existing = index === -1 ? null : draft.monthlyRecords[index];
+        const record = {
+          ...existing,
+          id: existing?.id ?? idGenerator(),
+          month,
+          status: existing?.status ?? "draft",
+          closedAt: existing?.closedAt ?? null,
+          reconciliation: {
+            assetId: asset.id,
+            closingCash,
+            assetValue: asset.currentValue,
+            difference: closingCash - asset.currentValue,
+            reconciledAt: timestamp,
+          },
+          createdAt: existing?.createdAt ?? timestamp,
+          updatedAt: timestamp,
+        };
+        if (index === -1) draft.monthlyRecords.push(record);
+        else draft.monthlyRecords[index] = record;
+        return record;
       });
     },
 

@@ -36,3 +36,25 @@ test("monthly finance view masks sensitive amounts", () => {
   assert.doesNotMatch(html, />฿25,000</);
   assert.match(html, /data-sensitive/);
 });
+
+test("monthly finance view renders a reconciliation difference", () => {
+  const html = renderMonthlyFinanceView({
+    data: {
+      ...data,
+      monthlyRecord: {
+        status: "draft",
+        reconciliation: {
+          assetId: "asset-1",
+          closingCash: 13000,
+          assetValue: 13500,
+          difference: -500,
+        },
+      },
+      reconciliationAssets: [{ id: "asset-1", name: "Main Bank" }],
+    },
+    isPrivate: false,
+  });
+  assert.match(html, /Main Bank/);
+  assert.match(html, /budget-negative/);
+  assert.match(html, /-฿500|฿-500/);
+});

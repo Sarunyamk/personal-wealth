@@ -20,6 +20,10 @@
   min-width: 0;
 }
 
+.month-status { padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm); font-size: var(--font-size-xs); font-weight: 800; }
+.month-status--draft { background: var(--color-surface-subtle); color: var(--color-text-muted); }
+.month-status--closed { background: var(--color-avatar); color: var(--color-positive); }
+
 .monthly-summary {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -157,6 +161,31 @@
   justify-content: space-between;
   gap: var(--space-3);
   padding: var(--space-4);
+}
+
+.month-close { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); margin-top: var(--space-5); padding: var(--space-4); }
+.month-close p { margin: var(--space-1) 0 0; color: var(--color-text-muted); font-size: var(--font-size-sm); }
+.month-close__actions { display: flex; gap: var(--space-2); }
+.recurring-list, .allocation-list { display: grid; gap: var(--space-2); margin-top: var(--space-3); }
+.recurring-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); }
+.recurring-row > div { display: grid; min-width: 0; }
+.recurring-row span, .allocation-section p, .allocation-row span { color: var(--color-text-muted); font-size: var(--font-size-sm); }
+.allocation-section { margin-top: var(--space-6); }
+.allocation-section h3, .allocation-section p { margin: 0; }
+.allocation-section h3 { font-size: var(--font-size-lg); }
+.allocation-list { padding: var(--space-4); }
+.allocation-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-2) var(--space-4); align-items: center; }
+.allocation-row > div:first-child { display: flex; justify-content: space-between; gap: var(--space-2); }
+.allocation-bar { grid-column: 1 / -1; height: .5rem; overflow: hidden; border-radius: var(--radius-sm); background: var(--color-surface-subtle); }
+.allocation-bar span { display: block; height: 100%; background: var(--color-property); }
+.reconciliation { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); margin-top: var(--space-5); padding: var(--space-4); }
+.reconciliation h3, .reconciliation p { margin: 0; }
+.reconciliation h3 { font-size: var(--font-size-md); }
+.reconciliation p { color: var(--color-text-muted); font-size: var(--font-size-sm); }
+
+@media (max-width: 39.99rem) {
+  .monthly-header, .monthly-header__actions, .budget-section__header, .month-close, .reconciliation { align-items: stretch; flex-direction: column; }
+  .month-close__actions { display: grid; }
 }
 
 @media (min-width: 48rem) {

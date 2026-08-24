@@ -164,6 +164,85 @@ test("budget upsert keeps one plan per month type and category", async () => {
   assert.equal(budgets[0].plannedAmount, 3500);
 });
 
+test("recurring materialization is idempotent and closed months reject changes", async () => {
+  const repository = createMemoryWealthRepository({
+    idGenerator: createIdGenerator(),
+    clock: fixedClock,
+  });
+  await repository.createRecurringTransaction({
+    type: "expense",
+    name: "Insurance",
+    category: "insurance",
+    amount: 850,
+    dayOfMonth: 31,
+  });
+
+  assert.equal((await repository.materializeRecurringTransactions("2026-08")).length, 1);
+  assert.equal((await repository.materializeRecurringTransactions("2026-08")).length, 0);
+  await repository.setMonthStatus("2026-08", "closed");
+  await assert.rejects(
+    repository.createTransaction({
+      type: "expense",
+      name: "Late edit",
+      category: "other",
+      amount: 1,
+      transactionDate: "2026-08-24",
+    }),
+    (error) => error.code === ERROR_CODES.VALIDATION,
+  );
+  await repository.setMonthStatus("2026-08", "draft");
+  assert.equal((await repository.getMonthlyRecord("2026-08")).status, "draft");
+});
+
+test("deactivated recurring templates stop future materialization", async () => {
+  const repository = createMemoryWealthRepository({
+    idGenerator: createIdGenerator(),
+    clock: fixedClock,
+  });
+  const recurring = await repository.createRecurringTransaction({
+    type: "income",
+    name: "Salary",
+    category: "salary",
+    amount: 25000,
+    dayOfMonth: 1,
+  });
+  await repository.deactivateRecurringTransaction(recurring.id);
+
+  assert.deepEqual(await repository.listRecurringTransactions(), []);
+  assert.equal((await repository.listRecurringTransactions({ includeInactive: true })).length, 1);
+  assert.deepEqual(await repository.materializeRecurringTransactions("2026-09"), []);
+});
+
+test("monthly reconciliation preserves the compared asset value through close", async () => {
+  const repository = createMemoryWealthRepository({
+    idGenerator: createIdGenerator(),
+    clock: fixedClock,
+  });
+  const asset = await repository.createAsset({
+    name: "Bank Account",
+    category: "bank-account",
+    currentValue: 13500,
+    liquidityLevel: "high",
+  });
+  const draft = await repository.setMonthReconciliation("2026-08", {
+    assetId: asset.id,
+    closingCash: 13000,
+  });
+  await repository.updateAssetValue(asset.id, 14000);
+  const closed = await repository.setMonthStatus("2026-08", "closed");
+
+  assert.equal(draft.reconciliation.assetValue, 13500);
+  assert.equal(draft.reconciliation.difference, -500);
+  assert.deepEqual(closed.reconciliation, draft.reconciliation);
+  await assert.rejects(
+    repository.setMonthReconciliation("2026-08", {
+      assetId: asset.id,
+      closingCash: 14000,
+    }),
+    (error) => error.code === ERROR_CODES.VALIDATION,
+  );
+});
+
 test("failed persistence leaves repository state unchanged", async () => {
   const storage = {
     getItem() {
