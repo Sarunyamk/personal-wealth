@@ -121,6 +121,32 @@ async function verifyViewport(browser, baseUrl, viewport) {
   await context.close();
 }
 
+async function verifyAuthGuard(browser, baseUrl) {
+  const context = await browser.newContext({ viewport: { width: 360, height: 800 } });
+  const page = await context.newPage();
+  await page.route("**/config.js", (route) =>
+    route.fulfill({
+      contentType: "application/javascript",
+      body: `globalThis.__APP_CONFIG__ = Object.freeze({
+        supabaseUrl: "https://example.supabase.co",
+        supabasePublishableKey: "test-publishable-key"
+      });`,
+    }),
+  );
+  await page.goto(baseUrl, { waitUntil: "networkidle" });
+  await page.locator("[data-auth-form][data-mode=\"login\"]").waitFor();
+  assert.equal(await page.locator(".app-shell:visible").count(), 0, "Anonymous session exposed app shell");
+  const accessibility = await new AxeBuilder({ page }).analyze();
+  assert.deepEqual(
+    accessibility.violations
+      .filter(({ impact }) => impact === "critical" || impact === "serious")
+      .map(({ id }) => id),
+    [],
+    "Auth guard has blocking accessibility violations",
+  );
+  await context.close();
+}
+
 const port = await availablePort();
 const baseUrl = `http://127.0.0.1:${port}/`;
 const server = spawn(process.execPath, ["scripts/serve.mjs"], {
@@ -134,6 +160,7 @@ try {
   browser = await chromium.launch({ executablePath: chromePath, headless: true });
   await verifyViewport(browser, baseUrl, { width: 1440, height: 900 });
   await verifyViewport(browser, baseUrl, { width: 360, height: 800 });
+  await verifyAuthGuard(browser, baseUrl);
   console.log("E2E smoke passed at 1440x900 and 360x800.");
 } finally {
   await browser?.close();

@@ -18,6 +18,7 @@ const iconNames = [
   "History",
   "Landmark",
   "LayoutDashboard",
+  "LogOut",
   "Menu",
   "Plus",
   "Pencil",
