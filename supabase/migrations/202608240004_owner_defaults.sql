@@ -1,0 +1,12 @@
+alter table public.assets alter column user_id set default auth.uid();
+alter table public.liabilities alter column user_id set default auth.uid();
+alter table public.asset_value_history alter column user_id set default auth.uid();
+alter table public.liability_value_history alter column user_id set default auth.uid();
+alter table public.recurring_transactions alter column user_id set default auth.uid();
+alter table public.transactions alter column user_id set default auth.uid();
+alter table public.budgets alter column user_id set default auth.uid();
+alter table public.monthly_records alter column user_id set default auth.uid();
+alter table public.goals alter column user_id set default auth.uid();
+alter table public.goal_contributions alter column user_id set default auth.uid();
+alter table public.snapshots alter column user_id set default auth.uid();
+alter table public.activities alter column user_id set default auth.uid();

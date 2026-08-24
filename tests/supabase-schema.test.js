@@ -61,3 +61,20 @@ test("atomic RPCs derive ownership from auth session and reject anonymous execut
   assert.ok((migration.match(/security invoker/g) ?? []).length >= 4);
   assert.ok((migration.match(/auth\.uid\(\)/g) ?? []).length >= 4);
 });
+
+test("browser inserts derive user ownership from the authenticated database session", () => {
+  for (const table of [
+    "assets",
+    "liabilities",
+    "transactions",
+    "budgets",
+    "monthly_records",
+    "goals",
+    "snapshots",
+  ]) {
+    assert.match(
+      migration,
+      new RegExp(`alter table public\\.${table} alter column user_id set default auth\\.uid\\(\\)`),
+    );
+  }
+});
