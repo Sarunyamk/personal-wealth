@@ -1,4 +1,4 @@
-import { mountAuthController, authModeFromHash } from "./auth/auth-controller.js";
+import { authErrorFromHash, mountAuthController, authModeFromHash } from "./auth/auth-controller.js";
 import { createSupabaseBrowserClient } from "./data/supabase-client.js";
 import { createAuthService } from "./services/auth-service.js";
 
@@ -14,7 +14,12 @@ if (!client) {
     document.querySelector(".app-shell").hidden = true;
     const root = document.createElement("div");
     document.body.prepend(root);
-    mountAuthController({ root, auth, initialMode: resetMode ? "reset" : "login" });
+    mountAuthController({
+      root,
+      auth,
+      initialMode: resetMode ? "reset" : "login",
+      initialError: authErrorFromHash(window.location.hash),
+    });
   } else {
     globalThis.__SUPABASE_CLIENT__ = client;
     const logout = document.querySelector("[data-auth-logout]");

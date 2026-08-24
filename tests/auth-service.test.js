@@ -27,12 +27,20 @@ function authClient(overrides = {}) {
 test("auth service normalizes signup identity and reports confirmation state", async () => {
   const client = authClient();
   const auth = createAuthService(client);
-  const result = await auth.signUp({ email: " USER@Example.COM ", password: "password1", displayName: " Mink " });
+  const result = await auth.signUp({
+    email: " USER@Example.COM ",
+    password: "password1",
+    displayName: " Mink ",
+    emailRedirectTo: "https://example.com/app/",
+  });
   assert.equal(result.requiresEmailConfirmation, true);
   assert.deepEqual(client.calls[0][1], {
     email: "user@example.com",
     password: "password1",
-    options: { data: { display_name: "Mink" } },
+    options: {
+      data: { display_name: "Mink" },
+      emailRedirectTo: "https://example.com/app/",
+    },
   });
 });
 

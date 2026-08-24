@@ -38,13 +38,15 @@ export function createAuthService(client) {
       const { data } = client.auth.onAuthStateChange((event, session) => listener({ event, session }));
       return () => data.subscription.unsubscribe();
     },
-    async signUp({ email, password, displayName }) {
+    async signUp({ email, password, displayName, emailRedirectTo }) {
+      if (!emailRedirectTo) throw validationError(["email confirmation redirect URL is required"]);
       const data = unwrap(
         await client.auth.signUp({
           email: normalizedEmail(email),
           password: validatedPassword(password),
           options: {
             data: { display_name: String(displayName ?? "").trim() || null },
+            emailRedirectTo,
           },
         }),
         "Sign up",

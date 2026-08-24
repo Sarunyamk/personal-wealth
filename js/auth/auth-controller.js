@@ -9,14 +9,27 @@ export function passwordResetUrl(location) {
   return `${location.origin}${location.pathname}#reset-password`;
 }
 
-export function mountAuthController({ root, auth, location = window.location, initialMode } = {}) {
+export function authCallbackUrl(location) {
+  return `${location.origin}${location.pathname}`;
+}
+
+export function authErrorFromHash(hash) {
+  const params = new URLSearchParams(String(hash ?? "").replace(/^#/, ""));
+  if (!params.has("error")) return "";
+  if (params.get("error_code") === "otp_expired") {
+    return "ลิงก์ยืนยันหมดอายุหรือถูกใช้แล้ว กรุณาสมัครหรือขอลิงก์ใหม่";
+  }
+  return params.get("error_description")?.replaceAll("+", " ") || "ไม่สามารถยืนยันบัญชีได้ กรุณาลองใหม่";
+}
+
+export function mountAuthController({ root, auth, location = window.location, initialMode, initialError } = {}) {
   if (!root || !auth) throw new TypeError("Auth root and service are required.");
   const state = {
     mode: initialMode ?? authModeFromHash(location.hash),
     email: "",
     pending: false,
     message: "",
-    error: "",
+    error: initialError ?? authErrorFromHash(location.hash),
   };
 
   function render() {
@@ -56,6 +69,7 @@ export function mountAuthController({ root, auth, location = window.location, in
           email: data.get("email"),
           password: data.get("password"),
           displayName: data.get("displayName"),
+          emailRedirectTo: authCallbackUrl(location),
         });
         if (result.requiresEmailConfirmation) {
           state.mode = "login";
