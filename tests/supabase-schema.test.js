@@ -1,11 +1,13 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import test from "node:test";
 
-const migration = readFileSync(
-  new URL("../supabase/migrations/202608240001_initial_schema.sql", import.meta.url),
-  "utf8",
-);
+const migrationDirectory = new URL("../supabase/migrations/", import.meta.url);
+const migration = readdirSync(migrationDirectory)
+  .filter((file) => file.endsWith(".sql"))
+  .sort()
+  .map((file) => readFileSync(new URL(file, migrationDirectory), "utf8"))
+  .join("\n");
 const seed = readFileSync(new URL("../supabase/seed.sql", import.meta.url), "utf8");
 
 test("Supabase migration defines every frozen data contract table", () => {
@@ -41,6 +43,21 @@ test("child records enforce same-owner foreign keys and monthly uniqueness", () 
 
 test("master category seed is repeatable and never creates a user-owned row", () => {
   assert.match(seed, /on conflict \(user_id, entity_type, key\)/);
+  assert.match(migration, /on conflict \(user_id, entity_type, key\)/);
   assert.doesNotMatch(seed, /\([^)"']*auth\.uid\(\)/);
   assert.ok((seed.match(/\(null, '/g) ?? []).length >= 20);
+});
+
+test("atomic RPCs derive ownership from auth session and reject anonymous execution", () => {
+  for (const operation of [
+    "record_asset_value",
+    "record_liability_balance",
+    "contribute_to_goal",
+    "upsert_wealth_snapshot",
+  ]) {
+    assert.match(migration, new RegExp(`create function public\\.${operation}\\(`));
+    assert.match(migration, new RegExp(`revoke all on function public\\.${operation}[^;]+anon;`));
+  }
+  assert.ok((migration.match(/security invoker/g) ?? []).length >= 4);
+  assert.ok((migration.match(/auth\.uid\(\)/g) ?? []).length >= 4);
 });
