@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { ERROR_CODES } from "../js/errors/app-error.js";
+import { createDatabase } from "../js/data/schema.js";
 import {
   createSupabaseWealthRepository,
   databaseError,
@@ -78,4 +79,30 @@ test("Supabase errors retain stable domain error codes", () => {
   assert.equal(databaseError({ code: "23505", message: "duplicate" }, "Create").code, ERROR_CODES.CONFLICT);
   assert.equal(databaseError({ code: "PGRST116", message: "missing" }, "Get").code, ERROR_CODES.NOT_FOUND);
   assert.equal(databaseError({ code: "23514", message: "check" }, "Save").code, ERROR_CODES.VALIDATION);
+});
+
+test("Supabase local import uses idempotent ID upserts", async () => {
+  const client = fakeClient({ tableResult: { data: null, error: null } });
+  const repository = createSupabaseWealthRepository(client);
+  const summary = await repository.importLocalData(
+    createDatabase({
+      assets: [
+        {
+          id: "10000000-0000-4000-8000-000000000001",
+          name: "Cash",
+          category: "cash",
+          currentValue: 1000,
+          currency: "THB",
+          liquidityLevel: "high",
+          isActive: true,
+          createdAt: "2026-08-24T00:00:00.000Z",
+          updatedAt: "2026-08-24T00:00:00.000Z",
+        },
+      ],
+    }),
+  );
+  assert.equal(summary.assets, 1);
+  const upsert = client.calls.find((call) => call[0] === "upsert");
+  assert.equal(upsert[2].onConflict, "id");
+  assert.equal(upsert[1][0].id, "10000000-0000-4000-8000-000000000001");
 });

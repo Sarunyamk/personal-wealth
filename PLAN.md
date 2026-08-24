@@ -209,8 +209,8 @@ Exit criteria:
 - [ ] เพิ่ม PK/FK, checks, indexes, timestamps และ uniqueness constraints
 - [ ] seed master categories แบบ repeatable
 - [ ] ทำ trigger/function เฉพาะสิ่งที่ต้อง atomic เช่น updated timestamp
-- [ ] สร้าง Supabase adapter ให้ตรงกับ service interface เดิม
-- [ ] ทำ migration/import path จาก local data ถ้าต้องการเก็บข้อมูล prototype
+- [x] สร้าง Supabase adapter ให้ตรงกับ service interface เดิม
+- [x] ทำ migration/import path จาก local data ถ้าต้องการเก็บข้อมูล prototype
 
 Exit criteria:
 

@@ -1,4 +1,5 @@
 import { AppError, ERROR_CODES } from "../errors/app-error.js";
+import { buildSupabaseImportPlan, summarizeSupabaseImport } from "../data/supabase-import.js";
 import { fromSupabaseRow, toSupabaseRow } from "./supabase-row-mapper.js";
 
 function databaseError(error, context) {
@@ -240,6 +241,18 @@ export function createSupabaseWealthRepository(client) {
           (field) => previous[field] !== snapshot[field],
         );
       return { snapshot, created: !previous, changed };
+    },
+    async importLocalData(database) {
+      const plan = buildSupabaseImportPlan(database);
+      for (const { table, rows } of plan) {
+        for (let offset = 0; offset < rows.length; offset += 100) {
+          await resultOf(
+            client.from(table).upsert(rows.slice(offset, offset + 100), { onConflict: "id" }),
+            `Import ${table}`,
+          );
+        }
+      }
+      return summarizeSupabaseImport(plan);
     },
   });
 }
