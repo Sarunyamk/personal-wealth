@@ -6,6 +6,10 @@ const assets = [
     source: "node_modules/chart.js/dist/chart.umd.js",
     destination: "assets/vendor/chart.umd.js",
   },
+  {
+    source: "node_modules/@supabase/supabase-js/dist/umd/supabase.js",
+    destination: "assets/vendor/supabase.umd.js",
+  },
 ];
 
 for (const asset of assets) {

@@ -20,6 +20,7 @@
     "node": ">=20"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.112.3",
     "chart.js": "^4.5.1",
     "lucide": "^1.33.0"
   },

@@ -15,4 +15,5 @@ import "./privacy.test.js";
 import "./repositories.test.js";
 import "./records-view.test.js";
 import "./supabase-schema.test.js";
+import "./supabase-client.test.js";
 import "./wealth-service.test.js";
