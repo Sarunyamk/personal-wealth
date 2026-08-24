@@ -32,6 +32,10 @@ Supabase values are written to `dist/config.js` from `VITE_SUPABASE_URL` and
 `VITE_SUPABASE_PUBLISHABLE_KEY`; tracked `config.js` keeps local development
 independent from production configuration.
 
+GitHub Pages reads both values from repository **Secrets** under Settings > Secrets
+and variables > Actions. The build exposes them as public browser configuration;
+database passwords and service-role keys must never be added there.
+
 ## Architecture
 
 - `css/variables.css`: theme and semantic design tokens
