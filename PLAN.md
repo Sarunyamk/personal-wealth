@@ -229,7 +229,7 @@ Exit criteria:
 - [ ] policies สำหรับ SELECT/INSERT/UPDATE/DELETE ด้วย `auth.uid()`
 - [ ] ตรวจ ownership ของ child records เช่น history และ goal contributions
 - [ ] ทดสอบด้วยอย่างน้อย 2 users ว่าอ่าน/แก้ไขข้อมูลข้ามกันไม่ได้
-- [ ] จัดการ expired session, offline และ backend errors
+- [x] จัดการ expired session, offline และ backend errors
 
 Exit criteria:
 

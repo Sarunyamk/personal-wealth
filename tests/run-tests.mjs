@@ -3,6 +3,7 @@ import "./annual-report.test.js";
 import "./annual-report-view.test.js";
 import "./auth-service.test.js";
 import "./auth-controller.test.js";
+import "./session-guard.test.js";
 import "./auth-view.test.js";
 import "./contracts.test.js";
 import "./dashboard.test.js";
