@@ -1,6 +1,7 @@
 import { createDatabase, migrateDatabase } from "../data/schema.js";
+import { isDate } from "../domain/contracts.js";
 import { normalizeAmount, normalizeAsset, normalizeLiability } from "../domain/normalizers.js";
-import { AppError, ERROR_CODES } from "../errors/app-error.js";
+import { AppError, ERROR_CODES, validationError } from "../errors/app-error.js";
 
 function clone(value) {
   return structuredClone(value);
@@ -249,7 +250,84 @@ export function createWealthRepository({
     },
 
     async listActivities({ limit = 20 } = {}) {
-      return clone(database.activities.slice(-Math.max(0, limit)).reverse());
+      const records = database.activities
+        .map((activity, index) => ({ activity, index }))
+        .sort(
+          (left, right) =>
+            right.activity.createdAt.localeCompare(left.activity.createdAt) ||
+            right.index - left.index,
+        )
+        .slice(0, Math.max(0, limit))
+        .map(({ activity }) => activity);
+      return clone(records);
+    },
+
+    async listGoals() {
+      return clone(database.goals);
+    },
+
+    async listSnapshots() {
+      return clone(
+        [...database.snapshots].sort((left, right) =>
+          left.snapshotDate.localeCompare(right.snapshotDate),
+        ),
+      );
+    },
+
+    async upsertSnapshot(input) {
+      if (!isDate(input?.snapshotDate)) {
+        throw validationError(["snapshotDate must be a valid date"]);
+      }
+      const snapshotDate = `${input.snapshotDate.slice(0, 7)}-01`;
+      const values = {
+        totalAssets: normalizeAmount(input.totalAssets, "totalAssets"),
+        totalLiabilities: normalizeAmount(input.totalLiabilities, "totalLiabilities"),
+        netWorth: Number(input.netWorth),
+        liquidAssets: normalizeAmount(input.liquidAssets, "liquidAssets"),
+        investmentAssets: normalizeAmount(input.investmentAssets, "investmentAssets"),
+      };
+      if (!Number.isFinite(values.netWorth)) {
+        throw validationError(["netWorth must be a finite number"]);
+      }
+      if (Math.abs(values.netWorth - (values.totalAssets - values.totalLiabilities)) > 0.005) {
+        throw validationError(["netWorth must equal totalAssets minus totalLiabilities"]);
+      }
+
+      const existing = database.snapshots.find(
+        (snapshot) => snapshot.snapshotDate.slice(0, 7) === snapshotDate.slice(0, 7),
+      );
+      const unchanged =
+        existing &&
+        Object.entries(values).every(([field, value]) => existing[field] === value);
+      if (unchanged) {
+        return clone({ snapshot: existing, created: false, changed: false });
+      }
+
+      const timestamp = clock();
+      const snapshot = {
+        id: existing?.id ?? idGenerator(),
+        snapshotDate,
+        ...values,
+        createdAt: existing?.createdAt ?? timestamp,
+        updatedAt: timestamp,
+      };
+      return commit((draft) => {
+        const index = draft.snapshots.findIndex(
+          (record) => record.snapshotDate.slice(0, 7) === snapshotDate.slice(0, 7),
+        );
+        if (index === -1) draft.snapshots.push(snapshot);
+        else draft.snapshots[index] = snapshot;
+        draft.activities.push(
+          createActivity(
+            "snapshot",
+            snapshot.id,
+            index === -1 ? "snapshot_created" : "snapshot_updated",
+            snapshot.netWorth,
+            timestamp,
+          ),
+        );
+        return { snapshot, created: index === -1, changed: true };
+      });
     },
 
     async exportData() {

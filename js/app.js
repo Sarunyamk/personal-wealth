@@ -1,5 +1,6 @@
 import { createAppServices } from "./bootstrap.js";
 import { requestConfirmation } from "./components/confirmation.js";
+import { mountDashboardCharts, unmountDashboardCharts } from "./components/charts.js";
 import { hydrateIcons } from "./components/icons.js";
 import { showToast } from "./components/toast.js";
 import {
@@ -8,9 +9,15 @@ import {
   getNavigationItem,
   getViewIdFromHash,
 } from "./config/navigation.js";
+import { TREND_RANGES, filterSnapshotsByRange } from "./domain/dashboard.js";
 import { createPrivacyState, presentAmount } from "./state/privacy.js";
 import { formatCurrency, formatDate } from "./utils/formatters.js";
 import { escapeHtml } from "./utils/html.js";
+import {
+  renderDashboardError,
+  renderDashboardLoading,
+  renderDashboardView,
+} from "./views/dashboard-view.js";
 import { renderAssetsView, renderLiabilitiesView } from "./views/records-view.js";
 
 const page = document.querySelector("[data-page]");
@@ -24,10 +31,10 @@ const moreDialog = document.querySelector("[data-more-dialog]");
 const privacyState = createPrivacyState();
 const { wealth } = createAppServices();
 const viewState = {
+  dashboard: { range: "6M" },
   assets: { query: "", category: "all" },
   liabilities: { query: "", category: "all" },
 };
-let summary;
 let searchRenderTimer;
 
 function iconPlaceholder(name) {
@@ -77,50 +84,6 @@ function amountMarkup(value, label) {
   </span>`;
 }
 
-function renderDashboard() {
-  page.innerHTML = `
-    <header class="page__header">
-      <div><p class="page__eyebrow">Good morning</p>
-        <h2 class="page__title">ภาพรวมการเงินของคุณ</h2>
-        <p class="page__description">ข้อมูลล่าสุดเดือนสิงหาคม 2026</p></div>
-      <button class="button" type="button" data-open-editor="asset">
-        ${iconPlaceholder("plus")}<span>เพิ่ม Asset</span>
-      </button>
-    </header>
-    <section class="dashboard-grid" aria-label="สรุปฐานะการเงิน">
-      <article class="card net-worth-card">
-        <p class="net-worth-card__label">My Net Worth</p>
-        <p class="net-worth-card__value">${amountMarkup(summary.netWorth, "มูลค่าสุทธิ")}</p>
-        <p class="net-worth-card__change">
-          ${iconPlaceholder("trending-up")}<span>+4.2% this month</span>
-        </p>
-      </article>
-      ${metricCard("Total Assets", summary.totalAssets, "wallet-cards", "asset", `${summary.assetCount} accounts`)}
-      ${metricCard("Total Debt", summary.totalLiabilities, "landmark", "liability", `${summary.liabilityCount} active loan`)}
-      ${metricCard("Liquid Cash", summary.liquidAssets, "circle-dollar-sign", "cash", "Available now")}
-      ${chartPlaceholder("Net Worth", "Monthly trend", "chart-no-axes-combined", "")}
-      ${chartPlaceholder("Asset Allocation", "By category", "wallet-cards", "chart-placeholder--allocation")}
-    </section>`;
-}
-
-function metricCard(label, value, icon, modifier, meta) {
-  return `<article class="card metric-card metric-card--${modifier}">
-    <div class="metric-card__header"><p class="metric-card__label">${label}</p>
-      <span class="metric-card__icon">${iconPlaceholder(icon)}</span></div>
-    <p class="metric-card__value">${amountMarkup(value, label)}</p>
-    <p class="metric-card__meta">${meta}</p>
-  </article>`;
-}
-
-function chartPlaceholder(title, subtitle, icon, className) {
-  return `<article class="card chart-placeholder ${className}">
-    <header class="chart-placeholder__header"><div><h2>${title}</h2><p>${subtitle}</p></div>
-      <span class="metric-card__icon">${iconPlaceholder(icon)}</span></header>
-    <div class="chart-placeholder__canvas" aria-hidden="true">
-      <span class="skeleton" style="width: 72%; height: 45%"></span></div>
-  </article>`;
-}
-
 function renderPlaceholder(view) {
   const messages = {
     transactions: ["ยังไม่มี Transaction", "รายการรายรับและรายจ่ายจะแสดงที่นี่", "receipt-text"],
@@ -159,12 +122,32 @@ function updateActiveNavigation(viewId) {
 async function renderCurrentView() {
   const viewId = getViewIdFromHash(window.location.hash);
   const view = getNavigationItem(viewId);
+  let dashboardData;
+  unmountDashboardCharts();
   topbarTitle.textContent = view.label;
   document.title = `${view.label} · Personal Wealth`;
 
   if (viewId === "dashboard") {
-    summary = await wealth.getSummary();
-    renderDashboard();
+    page.innerHTML = renderDashboardLoading();
+    try {
+      dashboardData = await wealth.getDashboardData();
+    } catch (error) {
+      page.innerHTML = renderDashboardError();
+      hydrateIcons(page);
+      console.error(error);
+      return;
+    }
+    const snapshots = filterSnapshotsByRange(
+      dashboardData.snapshots,
+      viewState.dashboard.range,
+    );
+    page.innerHTML = renderDashboardView({
+      data: dashboardData,
+      range: viewState.dashboard.range,
+      ranges: TREND_RANGES,
+      snapshots,
+      isPrivate: privacyState.value,
+    });
   } else if (viewId === "assets") {
     page.innerHTML = renderAssetsView({
       assets: await wealth.listAssets(),
@@ -186,6 +169,16 @@ async function renderCurrentView() {
   updateActiveNavigation(viewId);
   updatePrivacyUi(privacyState.value);
   hydrateIcons(page);
+  if (dashboardData) {
+    mountDashboardCharts({
+      snapshots: filterSnapshotsByRange(
+        dashboardData.snapshots,
+        viewState.dashboard.range,
+      ),
+      allocation: dashboardData.summary.assetAllocation,
+      isPrivate: privacyState.value,
+    });
+  }
 }
 
 function setFormError(form, message = "") {
@@ -312,12 +305,24 @@ async function handleRecordAction(button) {
 
 function bindInteractions() {
   privacyButton.addEventListener("click", () => privacyState.toggle());
-  privacyState.subscribe(updatePrivacyUi);
+  privacyState.subscribe(async (isPrivate) => {
+    updatePrivacyUi(isPrivate);
+    if (getViewIdFromHash(window.location.hash) === "dashboard") {
+      await renderCurrentView();
+    }
+  });
   window.addEventListener("hashchange", () => renderCurrentView());
 
   document.addEventListener("click", async (event) => {
+    const rangeButton = event.target.closest("[data-trend-range]");
+    const retryButton = event.target.closest("[data-dashboard-retry]");
     const editorButton = event.target.closest("[data-open-editor]");
     const actionButton = event.target.closest("[data-record-action]");
+    if (retryButton) await renderCurrentView();
+    if (rangeButton) {
+      viewState.dashboard.range = rangeButton.dataset.trendRange;
+      await renderCurrentView();
+    }
     if (editorButton) await openEditor(editorButton.dataset.openEditor);
     if (actionButton) await handleRecordAction(actionButton);
     if (event.target.closest("[data-asset-close]")) assetDialog.close();

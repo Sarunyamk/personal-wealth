@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "assets:build": "npm run icons:build && npm run vendor:build",
     "icons:build": "node scripts/build-icons.mjs",
+    "vendor:build": "node scripts/build-vendor.mjs",
     "start": "node scripts/serve.mjs",
     "lint": "node scripts/check.mjs",
     "format:check": "node scripts/check-format.mjs",
@@ -16,6 +18,7 @@
     "node": ">=20"
   },
   "dependencies": {
+    "chart.js": "^4.5.1",
     "lucide": "^1.33.0"
   }
 }

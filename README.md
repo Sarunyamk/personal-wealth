@@ -16,6 +16,7 @@ a tracked SVG sprite, so the deployed app does not load icons from a CDN.
 
 ```bash
 npm start
+npm run assets:build
 npm run icons:build
 npm test
 npm run lint
@@ -35,6 +36,8 @@ Open `http://localhost:4173` after running `npm start`.
 - `js/data/`: development seed fixtures; page modules must not import these directly
 - `js/repositories/`: shared repository behavior and persistence adapters
 - `js/services/`: use-case boundary consumed by UI code
+- `js/views/`: render-only page templates
+- `assets/vendor/`: generated browser bundles for static deployment
 - `js/app.js`: DOM entry point
 - `tests/`: Node unit and contract tests
 

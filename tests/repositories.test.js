@@ -180,3 +180,33 @@ test("edit and deactivate preserve liability balance history", async () => {
   assert.equal((await repository.getLiability(liability.id)).monthlyPayment, 12000);
   assert.equal((await repository.listLiabilityValueHistory(liability.id)).length, 1);
 });
+
+test("monthly snapshot upsert is idempotent and updates one row when totals change", async () => {
+  const repository = createMemoryWealthRepository({
+    idGenerator: createIdGenerator(),
+    clock: fixedClock,
+  });
+  const snapshot = {
+    snapshotDate: "2026-08-24",
+    totalAssets: 1000000,
+    totalLiabilities: 100000,
+    netWorth: 900000,
+    liquidAssets: 200000,
+    investmentAssets: 500000,
+  };
+
+  const created = await repository.upsertSnapshot(snapshot);
+  const unchanged = await repository.upsertSnapshot(snapshot);
+  const updated = await repository.upsertSnapshot({
+    ...snapshot,
+    totalAssets: 1010000,
+    netWorth: 910000,
+  });
+
+  assert.equal(created.created, true);
+  assert.equal(unchanged.changed, false);
+  assert.equal(updated.created, false);
+  assert.equal((await repository.listSnapshots()).length, 1);
+  assert.equal((await repository.listSnapshots())[0].snapshotDate, "2026-08-01");
+  assert.equal((await repository.listActivities()).length, 2);
+});

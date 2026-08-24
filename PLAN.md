@@ -110,14 +110,14 @@ Exit criteria:
 
 เป้าหมาย: ตอบคำถามฐานะการเงินหลักภายในประมาณ 10 วินาที
 
-- [ ] Net Worth hero และ month-over-month change
-- [ ] Total Assets, Total Debt และ Liquid Cash summaries
-- [ ] Net Worth trend พร้อม 3M/6M/1Y/ALL
-- [ ] Asset allocation donut พร้อม tooltip ตัวเลขเต็ม
-- [ ] Goals preview และ recent activity
-- [ ] Financial Health indicator รุ่นแรก พร้อมแสดงองค์ประกอบที่คำนวณได้
-- [ ] Create/update monthly snapshot แบบ idempotent ต่อเดือน
-- [ ] Dashboard empty/partial/error/loading states
+- [x] Net Worth hero และ month-over-month change
+- [x] Total Assets, Total Debt และ Liquid Cash summaries
+- [x] Net Worth trend พร้อม 3M/6M/1Y/ALL
+- [x] Asset allocation donut พร้อม tooltip ตัวเลขเต็ม
+- [x] Goals preview และ recent activity
+- [x] Financial Health indicator รุ่นแรก พร้อมแสดงองค์ประกอบที่คำนวณได้
+- [x] Create/update monthly snapshot แบบ idempotent ต่อเดือน
+- [x] Dashboard empty/partial/error/loading states
 
 Exit criteria:
 

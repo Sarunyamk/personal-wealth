@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 const html = readFileSync("index.html", "utf8");
 const layout = readFileSync("css/layout.css", "utf8");
@@ -37,6 +37,9 @@ if (/localStorage|data\/seed|repositories\//.test(appModule)) {
 }
 if (!appModule.includes("form.dataset.submitting")) {
   failures.push("Mutation forms have no duplicate-submit guard.");
+}
+if (!html.includes("assets/vendor/chart.umd.js") || !existsSync("assets/vendor/chart.umd.js")) {
+  failures.push("The local Chart.js vendor asset is missing.");
 }
 
 if (failures.length > 0) {
