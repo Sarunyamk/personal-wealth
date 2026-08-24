@@ -54,6 +54,7 @@ test("atomic RPCs derive ownership from auth session and reject anonymous execut
     "record_liability_balance",
     "contribute_to_goal",
     "upsert_wealth_snapshot",
+    "materialize_recurring_transactions",
   ]) {
     assert.match(migration, new RegExp(`create function public\\.${operation}\\(`));
     assert.match(migration, new RegExp(`revoke all on function public\\.${operation}[^;]+anon;`));

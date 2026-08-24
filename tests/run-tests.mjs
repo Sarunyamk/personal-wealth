@@ -17,4 +17,5 @@ import "./records-view.test.js";
 import "./supabase-schema.test.js";
 import "./supabase-client.test.js";
 import "./supabase-row-mapper.test.js";
+import "./supabase-repository.test.js";
 import "./wealth-service.test.js";
