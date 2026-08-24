@@ -31,7 +31,16 @@ await writeFile(
 );
 await writeFile(path.join(output, ".nojekyll"), "", "utf8");
 
-const builtIndex = await readFile(path.join(output, "index.html"), "utf8");
+const indexPath = path.join(output, "index.html");
+const buildId = process.env.GITHUB_SHA?.slice(0, 12) || Date.now().toString(36);
+const builtIndex = (await readFile(indexPath, "utf8")).replace(
+  'src="js/app-loader.js"',
+  `src="js/app-loader.js?v=${buildId}"`,
+);
 if (!builtIndex.includes('src="config.js"')) throw new Error("index.html does not load config.js");
+if (!builtIndex.includes(`app-loader.js?v=${buildId}`)) {
+  throw new Error("index.html does not contain the versioned application loader");
+}
+await writeFile(indexPath, builtIndex, "utf8");
 
 console.log(`Static site built in ${path.relative(root, output)}.`);

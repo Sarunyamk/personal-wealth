@@ -6,9 +6,24 @@ import { escapeHtml } from "./utils/html.js";
 
 const client = createSupabaseBrowserClient();
 
+async function loadApplication() {
+  try {
+    await import("./app.js");
+  } catch (error) {
+    console.error(error);
+    const page = document.querySelector("[data-page]");
+    page.innerHTML = `<section class="card empty-state" role="alert">
+      <h2>ไม่สามารถเริ่มแอปได้</h2>
+      <p>${escapeHtml(error?.message || "เกิดข้อผิดพลาดระหว่างเชื่อมต่อข้อมูล")}</p>
+      <button class="button button--primary" type="button" data-app-retry>ลองใหม่</button>
+    </section>`;
+    page.querySelector("[data-app-retry]").addEventListener("click", () => window.location.reload());
+  }
+}
+
 if (!client) {
   globalThis.__ALLOW_LOCAL_DEMO__ = true;
-  await import("./app.js");
+  await loadApplication();
 } else {
   const auth = createAuthService(client);
   let session;
@@ -58,7 +73,7 @@ if (!client) {
           logout.disabled = false;
         }
       });
-      await import("./app.js");
+      await loadApplication();
     }
   }
 }
