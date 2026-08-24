@@ -1,4 +1,5 @@
 export const ERROR_CODES = Object.freeze({
+  AUTH: "AUTH_ERROR",
   CONFLICT: "CONFLICT",
   NOT_FOUND: "NOT_FOUND",
   STORAGE: "STORAGE_ERROR",
