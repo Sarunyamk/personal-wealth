@@ -46,7 +46,11 @@ test("closing a month materializes recurring items and remains idempotent", asyn
 
   assert.equal(first.status, "closed");
   assert.equal(second.id, first.id);
-  assert.equal((await service.getMonthlyFinance("2026-08")).transactions.length, 1);
+  const augustTransactions = (await service.getMonthlyFinance("2026-08")).transactions;
+  assert.equal(
+    augustTransactions.filter((transaction) => transaction.sourceRecurringId).length,
+    1,
+  );
   assert.equal((await service.listSnapshots()).length, 8);
   assert.equal((await service.reopenMonth("2026-08")).status, "draft");
 });

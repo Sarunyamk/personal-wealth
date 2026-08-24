@@ -9,7 +9,14 @@ import { createWealthRepository } from "./create-wealth-repository.js";
 function readDatabase(storage, key, seed) {
   try {
     const serialized = storage.getItem(key);
-    return serialized === null ? createDatabase(seed) : migrateDatabase(JSON.parse(serialized));
+    if (serialized === null) return createDatabase(seed);
+    const database = migrateDatabase(JSON.parse(serialized));
+    for (const collection of ["transactions", "budgets"]) {
+      if (database[collection].length === 0 && seed?.[collection]?.length > 0) {
+        database[collection] = structuredClone(seed[collection]);
+      }
+    }
+    return database;
   } catch (cause) {
     if (cause instanceof AppError) throw cause;
     throw new AppError(ERROR_CODES.STORAGE, "Local data could not be read.", { cause });

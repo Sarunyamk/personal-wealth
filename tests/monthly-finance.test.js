@@ -8,6 +8,7 @@ import {
   normalizeTransaction,
   summarizeMonthlyTransactions,
 } from "../js/domain/monthly-finance.js";
+import { DEMO_SEED } from "../js/data/seed.js";
 
 const records = [
   { type: "income", amount: 25000, transactionDate: "2026-08-01", isActive: true },
@@ -80,4 +81,13 @@ test("transfer allocation groups categories and ignores expenses", () => {
   assert.equal(allocation[0].amount, 5000);
   assert.equal(allocation[0].percentage, 50);
   assert.equal(allocation.reduce((sum, item) => sum + item.amount, 0), 10000);
+});
+
+test("spreadsheet demo seed derives August totals from source rows", () => {
+  const august = filterTransactionsByMonth(DEMO_SEED.transactions, "2026-08");
+  const summary = summarizeMonthlyTransactions(august);
+  assert.equal(summary.income, 25000);
+  assert.equal(summary.expense, 19750);
+  assert.equal(summary.transfers, 18000);
+  assert.equal(summary.transactionCount, 16);
 });

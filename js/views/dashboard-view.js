@@ -8,7 +8,7 @@ function icon(name) {
 
 function amount(value, isPrivate, label = "ยอดเงิน") {
   const formatted = formatCurrency(value);
-  return `<span class="amount" data-sensitive data-value="${formatted}" aria-label="${label}">${
+  return `<span class="amount" data-sensitive data-count-up data-number="${value}" data-value="${formatted}" aria-label="${label}">${
     isPrivate ? "฿••••••" : formatted
   }</span>`;
 }

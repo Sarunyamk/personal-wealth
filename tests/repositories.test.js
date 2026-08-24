@@ -4,6 +4,8 @@ import { DATA_SCHEMA_VERSION, LOCAL_STORAGE_KEY } from "../js/data/schema.js";
 import { ERROR_CODES } from "../js/errors/app-error.js";
 import { createLocalStorageWealthRepository } from "../js/repositories/local-storage-wealth-repository.js";
 import { createMemoryWealthRepository } from "../js/repositories/memory-wealth-repository.js";
+import { DEMO_SEED } from "../js/data/seed.js";
+import { createDatabase } from "../js/data/schema.js";
 
 function createIdGenerator() {
   let counter = 0;
@@ -112,6 +114,19 @@ test("local storage adapter restores committed records after recreation", async 
     JSON.parse(storage.getItem(LOCAL_STORAGE_KEY)).schemaVersion,
     DATA_SCHEMA_VERSION,
   );
+});
+
+test("demo hydration fills empty finance collections without replacing assets", async () => {
+  const storage = createMemoryStorage();
+  const existing = createDatabase({
+    assets: [{ id: "custom-asset", isActive: true }],
+  });
+  storage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(existing));
+  const repository = createLocalStorageWealthRepository({ storage, seed: DEMO_SEED });
+
+  assert.equal((await repository.listAssets())[0].id, "custom-asset");
+  assert.ok((await repository.listTransactions()).length > 0);
+  assert.ok((await repository.listBudgets({ month: "2026-08" })).length > 0);
 });
 
 test("transaction mutations persist atomically and preserve archived records", async () => {

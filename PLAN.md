@@ -172,10 +172,10 @@ Exit criteria:
 - [x] Goals list และ Add/Edit/Complete Goal
 - [x] Goal contribution และ contribution history
 - [x] Onboarding 3 ขั้นตอน พร้อม skip debt
-- [ ] Mobile Quick Add bottom sheet
-- [ ] Privacy Mode ครอบคลุมยอดเงิน, chart tooltip และ accessible text
-- [ ] page enter, modal, progress และ count-up animation แบบลด motion ได้
-- [ ] success/error feedback และ empty states ทุกหน้าหลัก
+- [x] Mobile Quick Add bottom sheet
+- [x] Privacy Mode ครอบคลุมยอดเงิน, chart tooltip และ accessible text
+- [x] page enter, modal, progress และ count-up animation แบบลด motion ได้
+- [x] success/error feedback และ empty states ทุกหน้าหลัก
 
 Exit criteria:
 

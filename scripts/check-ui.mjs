@@ -14,6 +14,8 @@ const requiredHtmlPatterns = [
   [/aria-live="polite"/, "toast live region"],
   [/data-privacy-toggle aria-pressed="false"/, "privacy toggle state"],
   [/data-confirm-dialog/, "confirmation dialog"],
+  [/data-quick-add-dialog/, "mobile quick add dialog"],
+  [/data-quick-add-open/, "mobile quick add trigger"],
 ];
 
 for (const [pattern, label] of requiredHtmlPatterns) {
@@ -29,6 +31,9 @@ if (!layout.includes("@media (min-width: 64rem)")) {
 if (!layout.includes("padding-bottom: calc(var(--mobile-nav-height)")) {
   failures.push("Main content does not reserve space for mobile navigation.");
 }
+if (!layout.includes(".mobile-quick-add { display: none; }")) {
+  failures.push("Mobile quick add is not hidden in the desktop shell.");
+}
 if (!components.includes("max-height: calc(100dvh")) {
   failures.push("Dialog has no viewport height constraint.");
 }
@@ -37,6 +42,12 @@ if (/localStorage|data\/seed|repositories\//.test(appModule)) {
 }
 if (!appModule.includes("form.dataset.submitting")) {
   failures.push("Mutation forms have no duplicate-submit guard.");
+}
+if (!appModule.includes("prefers-reduced-motion: reduce") || !appModule.includes("data-count-up")) {
+  failures.push("Count-up animation does not respect reduced motion.");
+}
+if (!appModule.includes('amountMarkup(value, "ยอดปัจจุบัน")')) {
+  failures.push("Quick update current value bypasses Privacy Mode.");
 }
 if (!html.includes("assets/vendor/chart.umd.js") || !existsSync("assets/vendor/chart.umd.js")) {
   failures.push("The local Chart.js vendor asset is missing.");

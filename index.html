@@ -54,6 +54,7 @@
       </div>
 
       <nav class="mobile-nav" aria-label="เมนูหลักบนมือถือ" data-mobile-nav></nav>
+      <button class="mobile-quick-add" type="button" data-quick-add-open aria-label="เพิ่มรายการ" title="เพิ่มรายการ"><span data-icon="plus"></span></button>
     </div>
 
     <dialog class="dialog" data-asset-dialog aria-labelledby="asset-dialog-title">
@@ -330,6 +331,16 @@
       <p class="field__error onboarding-error" role="alert" hidden></p>
       <footer class="dialog__footer"><button class="button button--secondary onboarding-skip" type="button" data-onboarding-skip hidden>ยังไม่มีหนี้</button><button class="button" type="submit" data-onboarding-submit>ถัดไป</button></footer>
     </form></dialog>
+
+    <dialog class="dialog quick-add-sheet" data-quick-add-dialog aria-labelledby="quick-add-title">
+      <header class="dialog__header"><h2 id="quick-add-title">เพิ่มรายการ</h2><button class="icon-button" type="button" data-quick-add-close aria-label="ปิด"><span data-icon="x"></span></button></header>
+      <div class="dialog__body quick-add-menu">
+        <button type="button" data-quick-add="asset"><span data-icon="wallet-cards"></span><span>Asset</span></button>
+        <button type="button" data-quick-add="liability"><span data-icon="landmark"></span><span>Liability</span></button>
+        <button type="button" data-quick-add="transaction"><span data-icon="receipt-text"></span><span>Transaction</span></button>
+        <button type="button" data-quick-add="goal"><span data-icon="goal"></span><span>Goal</span></button>
+      </div>
+    </dialog>
 
     <dialog class="dialog" data-more-dialog aria-labelledby="more-dialog-title">
       <header class="dialog__header">

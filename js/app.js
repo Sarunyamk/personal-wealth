@@ -42,6 +42,7 @@ const reconciliationDialog = document.querySelector("[data-reconciliation-dialog
 const goalDialog = document.querySelector("[data-goal-dialog]");
 const contributionDialog = document.querySelector("[data-contribution-dialog]");
 const onboardingDialog = document.querySelector("[data-onboarding-dialog]");
+const quickAddDialog = document.querySelector("[data-quick-add-dialog]");
 const moreDialog = document.querySelector("[data-more-dialog]");
 const privacyState = createPrivacyState();
 const { wealth, onboarding: onboardingState } = createAppServices();
@@ -115,6 +116,16 @@ function renderPlaceholder(view) {
       <h2>${title}</h2><p>${description}</p></section>`;
 }
 
+function renderPageLoading(label) {
+  return `<header class="page__header"><div><p class="page__eyebrow">Personal Wealth</p><h2 class="page__title">${label}</h2></div></header>
+    <section class="record-grid" aria-label="กำลังโหลด ${label}">${Array.from({ length: 3 }, () => `<div class="card skeleton" style="height:10rem"></div>`).join("")}</section>`;
+}
+
+function renderPageError(label) {
+  return `<section class="card empty-state" role="alert"><span class="empty-state__icon">${iconPlaceholder("triangle-alert")}</span>
+    <h2>โหลด ${label} ไม่สำเร็จ</h2><p>ข้อมูลเดิมยังไม่ถูกเปลี่ยนแปลง</p><button class="button" type="button" data-page-retry>ลองใหม่</button></section>`;
+}
+
 function updatePrivacyUi(isPrivate) {
   document.querySelectorAll("[data-sensitive]").forEach((element) => {
     element.textContent = presentAmount(element.dataset.value, isPrivate);
@@ -133,6 +144,23 @@ function updateActiveNavigation(viewId) {
   document.querySelectorAll("[data-nav-view]").forEach((link) => {
     if (link.dataset.navView === viewId) link.setAttribute("aria-current", "page");
     else link.removeAttribute("aria-current");
+  });
+}
+
+function animateCountUps(root, isPrivate) {
+  if (isPrivate || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  root.querySelectorAll("[data-count-up]").forEach((element) => {
+    const target = Number(element.dataset.number);
+    if (!Number.isFinite(target) || target === 0) return;
+    const startedAt = performance.now();
+    const tick = (now) => {
+      const progress = Math.min(1, (now - startedAt) / 450);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      element.textContent = formatCurrency(target * eased);
+      if (progress < 1) requestAnimationFrame(tick);
+      else element.textContent = element.dataset.value;
+    };
+    requestAnimationFrame(tick);
   });
 }
 
@@ -167,17 +195,21 @@ async function renderCurrentView() {
       isPrivate: privacyState.value,
     });
   } else if (viewId === "assets") {
-    page.innerHTML = renderAssetsView({
-      assets: await wealth.listAssets(),
-      ...viewState.assets,
-      isPrivate: privacyState.value,
-    });
+    page.innerHTML = renderPageLoading(view.label);
+    try {
+      page.innerHTML = renderAssetsView({ assets: await wealth.listAssets(), ...viewState.assets, isPrivate: privacyState.value });
+    } catch (error) {
+      page.innerHTML = renderPageError(view.label);
+      console.error(error);
+    }
   } else if (viewId === "liabilities") {
-    page.innerHTML = renderLiabilitiesView({
-      liabilities: await wealth.listLiabilities(),
-      ...viewState.liabilities,
-      isPrivate: privacyState.value,
-    });
+    page.innerHTML = renderPageLoading(view.label);
+    try {
+      page.innerHTML = renderLiabilitiesView({ liabilities: await wealth.listLiabilities(), ...viewState.liabilities, isPrivate: privacyState.value });
+    } catch (error) {
+      page.innerHTML = renderPageError(view.label);
+      console.error(error);
+    }
   } else if (viewId === "transactions") {
     page.innerHTML = renderMonthlyFinanceLoading();
     try {
@@ -199,10 +231,13 @@ async function renderCurrentView() {
       console.error(error);
     }
   } else if (viewId === "goals") {
-    page.innerHTML = renderGoalsView({
-      goals: await wealth.listGoals(),
-      isPrivate: privacyState.value,
-    });
+    page.innerHTML = renderPageLoading(view.label);
+    try {
+      page.innerHTML = renderGoalsView({ goals: await wealth.listGoals(), isPrivate: privacyState.value });
+    } catch (error) {
+      page.innerHTML = renderPageError(view.label);
+      console.error(error);
+    }
   } else {
     renderPlaceholder(view);
   }
@@ -211,6 +246,7 @@ async function renderCurrentView() {
   window.setTimeout(() => delete page.dataset.entering, 300);
   updateActiveNavigation(viewId);
   updatePrivacyUi(privacyState.value);
+  if (viewId === "dashboard") animateCountUps(page, privacyState.value);
   hydrateIcons(page);
   if (dashboardData) {
     mountDashboardCharts({
@@ -294,7 +330,8 @@ async function openQuickUpdate(entity, id) {
   const value = entity === "asset" ? record.currentValue : record.currentBalance;
   document.querySelector("[data-quick-title]").textContent =
     entity === "asset" ? "อัปเดตมูลค่า Asset" : "อัปเดตยอดหนี้";
-  document.querySelector("[data-quick-current]").textContent = `ยอดปัจจุบัน ${formatCurrency(value)}`;
+  document.querySelector("[data-quick-current]").innerHTML = `ยอดปัจจุบัน ${amountMarkup(value, "ยอดปัจจุบัน")}`;
+  updatePrivacyUi(privacyState.value);
   field(form, "value").value = value;
   quickDialog.showModal();
 }
@@ -400,7 +437,8 @@ async function openContribution(id) {
   field(form, "goalId").value = id;
   field(form, "contributionDate").value = new Date().toISOString().slice(0, 10);
   document.querySelector("[data-contribution-title]").textContent = `เพิ่มเงิน · ${goal.name}`;
-  document.querySelector("[data-contribution-remaining]").textContent = `เหลืออีก ${formatCurrency(goal.targetAmount - goal.currentAmount)}`;
+  document.querySelector("[data-contribution-remaining]").innerHTML = `เหลืออีก ${amountMarkup(goal.targetAmount - goal.currentAmount, "ยอดคงเหลือ Goal")}`;
+  updatePrivacyUi(privacyState.value);
   contributionDialog.showModal();
 }
 
@@ -501,7 +539,9 @@ function bindInteractions() {
     const reportExport = event.target.closest("[data-report-export]");
     const goalOpen = event.target.closest("[data-goal-open]");
     const goalAction = event.target.closest("[data-goal-action]");
+    const quickAdd = event.target.closest("[data-quick-add]");
     if (retryButton) await renderCurrentView();
+    if (event.target.closest("[data-page-retry]")) await renderCurrentView();
     if (event.target.closest("[data-report-retry]")) await renderCurrentView();
     if (rangeButton) {
       viewState.dashboard.range = rangeButton.dataset.trendRange;
@@ -524,6 +564,14 @@ function bindInteractions() {
     if (reportExport) await exportAnnualReport();
     if (goalOpen) await openGoalEditor();
     if (goalAction) await handleGoalAction(goalAction);
+    if (event.target.closest("[data-quick-add-open]")) quickAddDialog.showModal();
+    if (quickAdd) {
+      quickAddDialog.close();
+      if (quickAdd.dataset.quickAdd === "asset") await openEditor("asset");
+      if (quickAdd.dataset.quickAdd === "liability") await openEditor("liability");
+      if (quickAdd.dataset.quickAdd === "transaction") openTransactionDialog();
+      if (quickAdd.dataset.quickAdd === "goal") await openGoalEditor();
+    }
     if (event.target.closest("[data-monthly-retry]")) await renderCurrentView();
     if (event.target.closest("[data-asset-close]")) assetDialog.close();
     if (event.target.closest("[data-liability-close]")) liabilityDialog.close();
@@ -536,6 +584,7 @@ function bindInteractions() {
     if (event.target.closest("[data-goal-close]")) goalDialog.close();
     if (event.target.closest("[data-contribution-close]")) contributionDialog.close();
     if (event.target.closest("[data-onboarding-close]")) onboardingDialog.close();
+    if (event.target.closest("[data-quick-add-close]")) quickAddDialog.close();
     if (event.target.closest("[data-onboarding-skip]")) {
       onboardingState.skipDebt();
       renderOnboarding();

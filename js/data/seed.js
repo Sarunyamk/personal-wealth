@@ -10,11 +10,78 @@ export const EMPTY_SEED = Object.freeze({
   recurringTransactions: Object.freeze([]),
 });
 
+const DEMO_MONTHS = Object.freeze([
+  "2026-04", "2026-05", "2026-06", "2026-07", "2026-08",
+  "2026-09", "2026-10", "2026-11", "2026-12",
+]);
+
+const BASE_EXPENSES = Object.freeze([
+  ["ประกันสังคม", "insurance", 850],
+  ["ห้องพัก", "housing", 2200],
+  ["กิน", "food", 3000],
+  ["อื่นๆ", "other", 4000],
+  ["ค่าหวย", "lottery", 1000],
+  ["ประกันชีวิตม้า", "insurance", 2200],
+  ["ค่าเน็ต+หวย", "utilities", 1000],
+]);
+
+function demoTransferRows(monthIndex) {
+  return [
+    ["เงินไทยพาณิชย์", "provident-fund", monthIndex === 3 ? 8000 : 3000],
+    ["Dime and ETF", "etf", monthIndex >= 2 ? 2000 : 0],
+    ["กรุงเทพ สะสมทอง", "gold", 5000],
+    ["คริปโต้", "crypto", 5000],
+    ["UOB arty", "family-savings", 1000],
+    ["ผู้ป้อนค่าทำฟัน", "dental-fund", 1000],
+    ["เงินเที่ยว", "travel-fund", monthIndex === 0 ? 3000 : 1000],
+  ].filter(([, , amount]) => amount > 0);
+}
+
+function createDemoTransactions() {
+  let sequence = 0;
+  const rows = [];
+  for (const [monthIndex, month] of DEMO_MONTHS.entries()) {
+    const entries = [
+      ["income", "เงินเดือน", "salary", 25000],
+      ...demoTransferRows(monthIndex).map(([name, category, amount]) => ["transfer", name, category, amount]),
+      ...BASE_EXPENSES.map(([name, category, amount]) => ["expense", name, category, amount]),
+      ...(monthIndex >= 3 ? [["expense", "ม้า", "family", 5500]] : []),
+    ];
+    for (const [type, name, category, amount] of entries) {
+      sequence += 1;
+      rows.push(Object.freeze({
+        id: `70000000-0000-4000-8000-${String(sequence).padStart(12, "0")}`,
+        type, name, category, amount, transactionDate: `${month}-01`, note: null,
+        isActive: true, createdAt: `${month}-01T00:00:00.000Z`, updatedAt: `${month}-01T00:00:00.000Z`,
+      }));
+    }
+  }
+  return Object.freeze(rows);
+}
+
+function createDemoBudgets(transactions) {
+  const grouped = new Map();
+  for (const transaction of transactions) {
+    const month = transaction.transactionDate.slice(0, 7);
+    const key = `${month}:${transaction.type}:${transaction.category}`;
+    const current = grouped.get(key) ?? { month, type: transaction.type, category: transaction.category, plannedAmount: 0 };
+    current.plannedAmount += transaction.amount;
+    grouped.set(key, current);
+  }
+  return Object.freeze([...grouped.values()].map((budget, index) => Object.freeze({
+    id: `71000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
+    ...budget, createdAt: `${budget.month}-01T00:00:00.000Z`, updatedAt: `${budget.month}-01T00:00:00.000Z`,
+  })));
+}
+
+const DEMO_TRANSACTIONS = createDemoTransactions();
+const DEMO_BUDGETS = createDemoBudgets(DEMO_TRANSACTIONS);
+
 export const DEMO_SEED = Object.freeze({
   goalContributions: Object.freeze([]),
-  transactions: Object.freeze([]),
+  transactions: DEMO_TRANSACTIONS,
   monthlyRecords: Object.freeze([]),
-  budgets: Object.freeze([]),
+  budgets: DEMO_BUDGETS,
   recurringTransactions: Object.freeze([]),
   assets: Object.freeze([
     Object.freeze({
