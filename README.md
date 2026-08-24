@@ -46,6 +46,20 @@ independent from production configuration.
 - `assets/vendor/`: generated browser bundles for static deployment
 - `js/app.js`: DOM entry point
 - `tests/`: Node unit and contract tests
+- `supabase/`: PostgreSQL migrations, local configuration and repeatable master seed
+
+## Supabase development
+
+The browser continues to use local storage until authentication and RLS are ready. To validate the
+database locally, start Docker Desktop, install the Supabase CLI, then run:
+
+```bash
+npx supabase start
+npx supabase db reset
+```
+
+The reset must apply every migration to an empty database and run `supabase/seed.sql`. Never place a
+service-role key in `config.js`, GitHub Actions, or any browser bundle.
 
 Page modules may call services, but must not import storage adapters, seed fixtures,
 or a future Supabase client. Amounts remain numeric until the presentation layer
