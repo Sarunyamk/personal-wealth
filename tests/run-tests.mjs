@@ -9,6 +9,8 @@ import "./goals-view.test.js";
 import "./monthly-finance.test.js";
 import "./monthly-finance-view.test.js";
 import "./navigation.test.js";
+import "./onboarding.test.js";
+import "./onboarding-view.test.js";
 import "./privacy.test.js";
 import "./repositories.test.js";
 import "./records-view.test.js";

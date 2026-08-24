@@ -26,6 +26,7 @@ import {
 } from "./views/monthly-finance-view.js";
 import { renderAnnualReportError, renderAnnualReportLoading, renderAnnualReportView } from "./views/annual-report-view.js";
 import { renderGoalsView } from "./views/goals-view.js";
+import { onboardingSubmitLabel, renderOnboardingStep } from "./views/onboarding-view.js";
 
 const page = document.querySelector("[data-page]");
 const topbarTitle = document.querySelector("[data-topbar-title]");
@@ -40,9 +41,10 @@ const recurringDialog = document.querySelector("[data-recurring-dialog]");
 const reconciliationDialog = document.querySelector("[data-reconciliation-dialog]");
 const goalDialog = document.querySelector("[data-goal-dialog]");
 const contributionDialog = document.querySelector("[data-contribution-dialog]");
+const onboardingDialog = document.querySelector("[data-onboarding-dialog]");
 const moreDialog = document.querySelector("[data-more-dialog]");
 const privacyState = createPrivacyState();
-const { wealth } = createAppServices();
+const { wealth, onboarding: onboardingState } = createAppServices();
 const viewState = {
   dashboard: { range: "6M" },
   assets: { query: "", category: "all" },
@@ -429,6 +431,51 @@ async function handleGoalAction(button) {
   }
 }
 
+function renderOnboarding() {
+  const { step } = onboardingState.value;
+  document.querySelector("[data-onboarding-body]").innerHTML = renderOnboardingStep(step);
+  document.querySelector("[data-onboarding-skip]").hidden = step !== "debt";
+  document.querySelector("[data-onboarding-submit]").textContent = onboardingSubmitLabel(step);
+  setFormError(document.querySelector("[data-onboarding-form]"));
+  hydrateIcons(onboardingDialog);
+}
+
+async function maybeOpenOnboarding() {
+  if (onboardingState.value.completed) return;
+  const assets = await wealth.listAssets();
+  if (assets.length > 0 && onboardingState.value.stepIndex === 0) return;
+  renderOnboarding();
+  onboardingDialog.showModal();
+}
+
+async function submitOnboardingForm(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  if (form.dataset.submitting) return;
+  setSubmitting(form, true);
+  const data = Object.fromEntries(new FormData(form).entries());
+  const { step } = onboardingState.value;
+  try {
+    if (step === "asset") {
+      await wealth.createAsset({
+        ...data, currency: "THB",
+        liquidityLevel: ["cash", "bank-account"].includes(data.category) ? "high" : "low",
+      });
+    }
+    if (step === "debt") await wealth.createLiability(data);
+    if (step === "goal") await wealth.createGoal(data);
+    const next = onboardingState.advance();
+    if (next.completed) {
+      onboardingDialog.close();
+      window.location.hash = "#dashboard";
+      await renderCurrentView();
+      showToast("ตั้งค่าเริ่มต้นเรียบร้อย");
+    } else renderOnboarding();
+  } catch (error) {
+    setFormError(form, error.details?.[0] ?? "กรุณาตรวจสอบข้อมูล");
+  } finally { setSubmitting(form, false); }
+}
+
 function bindInteractions() {
   privacyButton.addEventListener("click", () => privacyState.toggle());
   privacyState.subscribe(async (isPrivate) => {
@@ -488,6 +535,11 @@ function bindInteractions() {
     if (event.target.closest("[data-reconciliation-close]")) reconciliationDialog.close();
     if (event.target.closest("[data-goal-close]")) goalDialog.close();
     if (event.target.closest("[data-contribution-close]")) contributionDialog.close();
+    if (event.target.closest("[data-onboarding-close]")) onboardingDialog.close();
+    if (event.target.closest("[data-onboarding-skip]")) {
+      onboardingState.skipDebt();
+      renderOnboarding();
+    }
     if (event.target.closest("[data-more-open]")) moreDialog.showModal();
     if (event.target.closest("[data-more-close]")) moreDialog.close();
     if (event.target.closest("[data-more-link]")) moreDialog.close();
@@ -537,6 +589,9 @@ function bindInteractions() {
   document
     .querySelector("[data-contribution-form]")
     .addEventListener("submit", submitContributionForm);
+  document
+    .querySelector("[data-onboarding-form]")
+    .addEventListener("submit", submitOnboardingForm);
 }
 
 async function submitGoalForm(event) {
@@ -804,6 +859,7 @@ try {
   hydrateIcons();
   bindInteractions();
   await renderCurrentView();
+  await maybeOpenOnboarding();
 } catch (error) {
   page.innerHTML = `<section class="card empty-state"><h2>ไม่สามารถโหลดข้อมูลได้</h2>
     <p>ลองรีเฟรชหน้าอีกครั้ง</p><button class="button" type="button"

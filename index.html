@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="css/monthly-finance.css" />
     <link rel="stylesheet" href="css/annual-report.css" />
     <link rel="stylesheet" href="css/goals.css" />
+    <link rel="stylesheet" href="css/onboarding.css" />
     <link rel="stylesheet" href="css/animation.css" />
   </head>
   <body>
@@ -322,6 +323,13 @@
         <label class="field"><span class="field__label">วันที่</span><input class="field__input" name="contributionDate" type="date" required /></label>
         <label class="field"><span class="field__label">หมายเหตุ</span><input class="field__input" name="note" /></label><p class="field__error" role="alert" hidden></p></div>
       <footer class="dialog__footer"><button class="button button--secondary" type="button" data-contribution-close>ยกเลิก</button><button class="button" type="submit">เพิ่มเงิน</button></footer></form></dialog>
+
+    <dialog class="dialog onboarding-dialog" data-onboarding-dialog aria-labelledby="onboarding-title"><form data-onboarding-form>
+      <header class="dialog__header"><h2 id="onboarding-title">ตั้งค่าเริ่มต้น</h2><button class="icon-button" type="button" data-onboarding-close aria-label="ทำภายหลัง"><span data-icon="x"></span></button></header>
+      <div class="dialog__body" data-onboarding-body></div>
+      <p class="field__error onboarding-error" role="alert" hidden></p>
+      <footer class="dialog__footer"><button class="button button--secondary onboarding-skip" type="button" data-onboarding-skip hidden>ยังไม่มีหนี้</button><button class="button" type="submit" data-onboarding-submit>ถัดไป</button></footer>
+    </form></dialog>
 
     <dialog class="dialog" data-more-dialog aria-labelledby="more-dialog-title">
       <header class="dialog__header">

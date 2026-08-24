@@ -1,0 +1,9 @@
+.onboarding-dialog { width: min(100% - (2 * var(--space-4)), 34rem); }
+.onboarding-progress { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-2); }
+.onboarding-progress span { height: .25rem; border-radius: var(--radius-sm); background: var(--color-border); }
+.onboarding-progress .is-active { background: var(--color-primary); }
+.onboarding-copy p, .onboarding-copy h2 { margin: 0; }
+.onboarding-copy p { color: var(--color-text-muted); font-size: var(--font-size-sm); }
+.onboarding-copy h2 { margin-top: var(--space-1); font-size: var(--font-size-xl); }
+.onboarding-error { padding-inline: var(--space-5); }
+.onboarding-skip { margin-right: auto; }
