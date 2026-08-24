@@ -16,6 +16,7 @@ a tracked SVG sprite, so the deployed app does not load icons from a CDN.
 
 ```bash
 npm start
+npm run build
 npm run assets:build
 npm run icons:build
 npm test
@@ -25,6 +26,11 @@ npm run verify
 ```
 
 Open `http://localhost:4173` after running `npm start`.
+
+`npm run build` creates the static GitHub Pages artifact in `dist/`. Production
+Supabase values are written to `dist/config.js` from `VITE_SUPABASE_URL` and
+`VITE_SUPABASE_PUBLISHABLE_KEY`; tracked `config.js` keeps local development
+independent from production configuration.
 
 ## Architecture
 

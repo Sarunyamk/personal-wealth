@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "assets:build": "npm run icons:build && npm run vendor:build",
+    "build": "node scripts/build-site.mjs",
     "icons:build": "node scripts/build-icons.mjs",
     "vendor:build": "node scripts/build-vendor.mjs",
     "start": "node scripts/serve.mjs",
