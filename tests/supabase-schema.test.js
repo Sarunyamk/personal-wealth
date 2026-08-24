@@ -113,3 +113,10 @@ test("new auth users receive a profile without exposing the trigger function", (
     /revoke all on function public\.handle_new_user\(\) from public, anon, authenticated;/,
   );
 });
+
+test("new and existing financial records receive an initial value history", () => {
+  assert.match(migration, /insert into public\.asset_value_history[\s\S]+where not exists/i);
+  assert.match(migration, /insert into public\.liability_value_history[\s\S]+where not exists/i);
+  assert.match(migration, /after insert on public\.assets/i);
+  assert.match(migration, /after insert on public\.liabilities/i);
+});

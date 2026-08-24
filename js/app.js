@@ -293,6 +293,7 @@ async function openEditor(entity, id = null) {
       field(form, "institution").value = asset.institution ?? "";
       field(form, "liquidity").value = asset.liquidityLevel;
     }
+    field(form, "value").readOnly = Boolean(id);
     assetDialog.showModal();
     return;
   }
@@ -317,6 +318,7 @@ async function openEditor(entity, id = null) {
       field(form, name).value = liability[name] ?? "";
     }
   }
+  field(form, "currentBalance").readOnly = Boolean(id);
   liabilityDialog.showModal();
 }
 
@@ -337,29 +339,42 @@ async function openQuickUpdate(entity, id) {
 }
 
 async function openHistory(entity, id) {
-  const record = entity === "asset" ? await wealth.getAsset(id) : await wealth.getLiability(id);
-  const history =
-    entity === "asset"
-      ? await wealth.listAssetValueHistory(id)
-      : await wealth.listLiabilityValueHistory(id);
-  const currentValue = entity === "asset" ? record.currentValue : record.currentBalance;
-  const valueField = entity === "asset" ? "value" : "balance";
-  document.querySelector("[data-history-title]").textContent = record.name;
-  document.querySelector("[data-history-body]").innerHTML = `
-    <div class="history-summary"><div><strong>${escapeHtml(record.category)}</strong>
-      <p class="record-card__meta">${escapeHtml(record.institution ?? "ไม่ระบุสถาบัน")}</p></div>
-      <span class="history-summary__value">${amountMarkup(currentValue, "ยอดปัจจุบัน")}</span></div>
-    <ul class="history-list">${history
-      .slice()
-      .reverse()
-      .map(
-        (item) => `<li class="history-item"><time datetime="${item.recordedAt}">${formatDate(
-          item.recordedAt.slice(0, 10),
-        )}</time><strong>${amountMarkup(item[valueField], "มูลค่า")}</strong></li>`,
-      )
-      .join("")}</ul>`;
-  updatePrivacyUi(privacyState.value);
+  const title = document.querySelector("[data-history-title]");
+  const body = document.querySelector("[data-history-body]");
+  title.textContent = "กำลังโหลดประวัติ";
+  body.innerHTML = `<div class="skeleton" style="height:10rem"></div>`;
   historyDialog.showModal();
+  try {
+    const record = entity === "asset" ? await wealth.getAsset(id) : await wealth.getLiability(id);
+    const history =
+      entity === "asset"
+        ? await wealth.listAssetValueHistory(id)
+        : await wealth.listLiabilityValueHistory(id);
+    const currentValue = entity === "asset" ? record.currentValue : record.currentBalance;
+    const valueField = entity === "asset" ? "value" : "balance";
+    const historyMarkup = history.length
+      ? `<ul class="history-list">${history
+          .slice()
+          .reverse()
+          .map(
+            (item) => `<li class="history-item"><time datetime="${item.recordedAt}">${formatDate(
+              item.recordedAt.slice(0, 10),
+            )}</time><strong>${amountMarkup(item[valueField], "มูลค่า")}</strong></li>`,
+          )
+          .join("")}</ul>`
+      : `<div class="empty-state"><h3>ยังไม่มีประวัติการเปลี่ยนยอด</h3></div>`;
+    title.textContent = record.name;
+    body.innerHTML = `
+      <div class="history-summary"><div><strong>${escapeHtml(record.category)}</strong>
+        <p class="record-card__meta">${escapeHtml(record.institution ?? "ไม่ระบุสถาบัน")}</p></div>
+        <span class="history-summary__value">${amountMarkup(currentValue, "ยอดปัจจุบัน")}</span></div>
+      ${historyMarkup}`;
+    updatePrivacyUi(privacyState.value);
+  } catch {
+    title.textContent = "เปิดประวัติไม่สำเร็จ";
+    body.innerHTML = `<div class="empty-state" role="alert">
+      <p>ไม่สามารถโหลดประวัติยอดเงินได้ กรุณาปิดแล้วลองใหม่</p></div>`;
+  }
 }
 
 async function deactivateRecord(entity, id) {
@@ -839,6 +854,7 @@ async function submitAssetForm(event) {
   };
   try {
     const id = data.get("id");
+    if (id) delete input.currentValue;
     if (id) await wealth.updateAsset(id, input);
     else await wealth.createAsset(input);
     assetDialog.close();
@@ -869,6 +885,7 @@ async function submitLiabilityForm(event) {
   };
   try {
     const id = data.get("id");
+    if (id) delete input.currentBalance;
     if (id) await wealth.updateLiability(id, input);
     else await wealth.createLiability(input);
     liabilityDialog.close();
