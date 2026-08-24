@@ -90,15 +90,15 @@ Exit criteria:
 
 เป้าหมาย: ทำ workflow ข้อมูลหลักของ Net Worth ให้ครบก่อน Dashboard ขั้นเต็ม
 
-- [ ] Assets list, search และ category filter
-- [ ] Add/Edit/Deactivate Asset form
-- [ ] Quick Update Asset Value
-- [ ] Asset detail และ value history
-- [ ] Liabilities list, search และ debt type filter
-- [ ] Add/Edit/Deactivate Liability form
-- [ ] Quick Update Outstanding Balance
-- [ ] Liability detail, balance history และ debt progress
-- [ ] confirmation สำหรับ destructive actions
+- [x] Assets list, search และ category filter
+- [x] Add/Edit/Deactivate Asset form
+- [x] Quick Update Asset Value
+- [x] Asset detail และ value history
+- [x] Liabilities list, search และ debt type filter
+- [x] Add/Edit/Deactivate Liability form
+- [x] Quick Update Outstanding Balance
+- [x] Liability detail, balance history และ debt progress
+- [x] confirmation สำหรับ destructive actions
 
 Exit criteria:
 

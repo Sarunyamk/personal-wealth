@@ -35,6 +35,9 @@ if (!components.includes("max-height: calc(100dvh")) {
 if (/localStorage|data\/seed|repositories\//.test(appModule)) {
   failures.push("The page entry point bypasses its service boundary.");
 }
+if (!appModule.includes("form.dataset.submitting")) {
+  failures.push("Mutation forms have no duplicate-submit guard.");
+}
 
 if (failures.length > 0) {
   console.error(failures.join("\n"));

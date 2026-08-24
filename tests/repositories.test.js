@@ -137,3 +137,46 @@ test("failed persistence leaves repository state unchanged", async () => {
   );
   assert.deepEqual(await repository.listAssets(), []);
 });
+
+test("edit and deactivate preserve asset history while removing it from active lists", async () => {
+  const repository = createMemoryWealthRepository({
+    idGenerator: createIdGenerator(),
+    clock: fixedClock,
+  });
+  const asset = await repository.createAsset({
+    name: "Cash",
+    category: "cash",
+    currentValue: 5000,
+    liquidityLevel: "high",
+  });
+  const edited = await repository.updateAsset(asset.id, {
+    name: "Travel Cash",
+    institution: "Home",
+  });
+  await repository.deactivateAsset(asset.id);
+
+  assert.equal(edited.name, "Travel Cash");
+  assert.deepEqual(await repository.listAssets(), []);
+  assert.equal((await repository.listAssets({ includeInactive: true }))[0].isActive, false);
+  assert.equal((await repository.listAssetValueHistory(asset.id)).length, 1);
+  assert.equal((await repository.getAsset(asset.id)).institution, "Home");
+});
+
+test("edit and deactivate preserve liability balance history", async () => {
+  const repository = createMemoryWealthRepository({
+    idGenerator: createIdGenerator(),
+    clock: fixedClock,
+  });
+  const liability = await repository.createLiability({
+    name: "Car Loan",
+    category: "car-loan",
+    originalAmount: 500000,
+    currentBalance: 300000,
+  });
+  await repository.updateLiability(liability.id, { monthlyPayment: "12000" });
+  await repository.deactivateLiability(liability.id);
+
+  assert.deepEqual(await repository.listLiabilities(), []);
+  assert.equal((await repository.getLiability(liability.id)).monthlyPayment, 12000);
+  assert.equal((await repository.listLiabilityValueHistory(liability.id)).length, 1);
+});

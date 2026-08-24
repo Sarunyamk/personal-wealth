@@ -68,6 +68,10 @@ export function createWealthRepository({
       return clone(records);
     },
 
+    async getAsset(id) {
+      return clone(findRecord(database.assets, id, "Asset"));
+    },
+
     async createAsset(input) {
       const timestamp = clock();
       const asset = normalizeAsset(input, { id: idGenerator(), now: timestamp });
@@ -78,6 +82,36 @@ export function createWealthRepository({
         );
         draft.activities.push(
           createActivity("asset", asset.id, "asset_created", asset.currentValue, timestamp),
+        );
+        return asset;
+      });
+    },
+
+    async updateAsset(id, changes) {
+      const currentAsset = findRecord(database.assets, id, "Asset");
+      const timestamp = clock();
+      const asset = normalizeAsset(
+        { ...currentAsset, ...changes },
+        { id, now: timestamp, createdAt: currentAsset.createdAt },
+      );
+      return commit((draft) => {
+        const index = draft.assets.findIndex((record) => record.id === id);
+        draft.assets[index] = asset;
+        draft.activities.push(
+          createActivity("asset", id, "asset_updated", asset.currentValue, timestamp),
+        );
+        return asset;
+      });
+    },
+
+    async deactivateAsset(id) {
+      const timestamp = clock();
+      return commit((draft) => {
+        const asset = findRecord(draft.assets, id, "Asset");
+        asset.isActive = false;
+        asset.updatedAt = timestamp;
+        draft.activities.push(
+          createActivity("asset", id, "asset_deactivated", asset.currentValue, timestamp),
         );
         return asset;
       });
@@ -111,6 +145,10 @@ export function createWealthRepository({
       return clone(records);
     },
 
+    async getLiability(id) {
+      return clone(findRecord(database.liabilities, id, "Liability"));
+    },
+
     async createLiability(input) {
       const timestamp = clock();
       const liability = normalizeLiability(input, { id: idGenerator(), now: timestamp });
@@ -124,6 +162,48 @@ export function createWealthRepository({
             "liability",
             liability.id,
             "liability_created",
+            liability.currentBalance,
+            timestamp,
+          ),
+        );
+        return liability;
+      });
+    },
+
+    async updateLiability(id, changes) {
+      const currentLiability = findRecord(database.liabilities, id, "Liability");
+      const timestamp = clock();
+      const liability = normalizeLiability(
+        { ...currentLiability, ...changes },
+        { id, now: timestamp, createdAt: currentLiability.createdAt },
+      );
+      return commit((draft) => {
+        const index = draft.liabilities.findIndex((record) => record.id === id);
+        draft.liabilities[index] = liability;
+        draft.activities.push(
+          createActivity(
+            "liability",
+            id,
+            "liability_updated",
+            liability.currentBalance,
+            timestamp,
+          ),
+        );
+        return liability;
+      });
+    },
+
+    async deactivateLiability(id) {
+      const timestamp = clock();
+      return commit((draft) => {
+        const liability = findRecord(draft.liabilities, id, "Liability");
+        liability.isActive = false;
+        liability.updatedAt = timestamp;
+        draft.activities.push(
+          createActivity(
+            "liability",
+            id,
+            "liability_deactivated",
             liability.currentBalance,
             timestamp,
           ),

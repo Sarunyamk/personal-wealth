@@ -13,7 +13,7 @@ function cleanOptionalText(value) {
   return typeof value === "string" && value.trim() !== "" ? value.trim() : null;
 }
 
-export function normalizeAsset(input, { id, now }) {
+export function normalizeAsset(input, { id, now, createdAt = now }) {
   const asset = {
     id,
     name: typeof input?.name === "string" ? input.name.trim() : "",
@@ -29,7 +29,7 @@ export function normalizeAsset(input, { id, now }) {
     liquidityLevel: input?.liquidityLevel ?? "low",
     note: cleanOptionalText(input?.note),
     isActive: input?.isActive ?? true,
-    createdAt: now,
+    createdAt,
     updatedAt: now,
   };
   const errors = validateAsset(asset);
@@ -37,7 +37,7 @@ export function normalizeAsset(input, { id, now }) {
   return asset;
 }
 
-export function normalizeLiability(input, { id, now }) {
+export function normalizeLiability(input, { id, now, createdAt = now }) {
   const liability = {
     id,
     name: typeof input?.name === "string" ? input.name.trim() : "",
@@ -58,7 +58,7 @@ export function normalizeLiability(input, { id, now }) {
     dueDay: input?.dueDay ?? null,
     note: cleanOptionalText(input?.note),
     isActive: input?.isActive ?? true,
-    createdAt: now,
+    createdAt,
     updatedAt: now,
   };
   const errors = validateLiability(liability);

@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="css/base.css" />
     <link rel="stylesheet" href="css/components.css" />
     <link rel="stylesheet" href="css/layout.css" />
+    <link rel="stylesheet" href="css/records.css" />
     <link rel="stylesheet" href="css/animation.css" />
   </head>
   <body>
@@ -50,29 +51,149 @@
       <nav class="mobile-nav" aria-label="เมนูหลักบนมือถือ" data-mobile-nav></nav>
     </div>
 
-    <dialog class="dialog" data-entry-dialog aria-labelledby="entry-dialog-title">
-      <form method="dialog" data-entry-form>
+    <dialog class="dialog" data-asset-dialog aria-labelledby="asset-dialog-title">
+      <form data-asset-form>
         <header class="dialog__header">
-          <h2 id="entry-dialog-title">เพิ่ม Asset</h2>
-          <button class="icon-button" type="button" data-dialog-close aria-label="ปิด">
+          <h2 id="asset-dialog-title" data-asset-dialog-title>เพิ่ม Asset</h2>
+          <button class="icon-button" type="button" data-asset-close aria-label="ปิด">
             <span data-icon="x"></span>
           </button>
         </header>
         <div class="dialog__body">
+          <input name="id" type="hidden" />
           <label class="field">
             <span class="field__label">ชื่อ Asset</span>
             <input class="field__input" name="name" autocomplete="off" required />
           </label>
           <label class="field">
+            <span class="field__label">ประเภท</span>
+            <select class="field__input" name="category" required>
+              <option value="cash">Cash</option>
+              <option value="bank-account">Bank Account</option>
+              <option value="investment">Investment</option>
+              <option value="stock">Stock</option>
+              <option value="fund">Mutual Fund</option>
+              <option value="crypto">Crypto</option>
+              <option value="gold">Gold</option>
+              <option value="property">Property</option>
+              <option value="vehicle">Vehicle</option>
+              <option value="business">Business</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+          <label class="field">
             <span class="field__label">มูลค่าปัจจุบัน</span>
             <input class="field__input" name="value" type="number" min="0" inputmode="decimal" required />
           </label>
+          <label class="field">
+            <span class="field__label">สถาบัน</span>
+            <input class="field__input" name="institution" autocomplete="organization" />
+          </label>
+          <label class="field">
+            <span class="field__label">สภาพคล่อง</span>
+            <select class="field__input" name="liquidity">
+              <option value="high">สูง</option>
+              <option value="medium">ปานกลาง</option>
+              <option value="low">ต่ำ</option>
+            </select>
+          </label>
+          <p class="field__error" role="alert" data-asset-form-error hidden></p>
         </div>
         <footer class="dialog__footer">
-          <button class="button button--secondary" type="button" data-dialog-close>ยกเลิก</button>
+          <button class="button button--secondary" type="button" data-asset-close>ยกเลิก</button>
           <button class="button" type="submit">บันทึก</button>
         </footer>
       </form>
+    </dialog>
+
+    <dialog class="dialog" data-liability-dialog aria-labelledby="liability-dialog-title">
+      <form data-liability-form>
+        <header class="dialog__header">
+          <h2 id="liability-dialog-title" data-liability-dialog-title>เพิ่ม Liability</h2>
+          <button class="icon-button" type="button" data-liability-close aria-label="ปิด">
+            <span data-icon="x"></span>
+          </button>
+        </header>
+        <div class="dialog__body">
+          <input name="id" type="hidden" />
+          <label class="field">
+            <span class="field__label">ชื่อหนี้</span>
+            <input class="field__input" name="name" autocomplete="off" required />
+          </label>
+          <label class="field">
+            <span class="field__label">ประเภทหนี้</span>
+            <select class="field__input" name="category" required>
+              <option value="credit-card">Credit Card</option>
+              <option value="home-loan">Home Loan</option>
+              <option value="car-loan">Car Loan</option>
+              <option value="personal-loan">Personal Loan</option>
+              <option value="education-loan">Education Loan</option>
+              <option value="business-loan">Business Loan</option>
+              <option value="other-debt">Other Debt</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field__label">ยอดหนี้เริ่มต้น</span>
+            <input class="field__input" name="originalAmount" type="number" min="0" required />
+          </label>
+          <label class="field">
+            <span class="field__label">ยอดคงเหลือ</span>
+            <input class="field__input" name="currentBalance" type="number" min="0" required />
+          </label>
+          <label class="field">
+            <span class="field__label">ดอกเบี้ยต่อปี (%)</span>
+            <input class="field__input" name="interestRate" type="number" min="0" step="0.01" />
+          </label>
+          <label class="field">
+            <span class="field__label">ยอดชำระต่อเดือน</span>
+            <input class="field__input" name="monthlyPayment" type="number" min="0" />
+          </label>
+          <label class="field">
+            <span class="field__label">สถาบัน</span>
+            <input class="field__input" name="institution" autocomplete="organization" />
+          </label>
+          <p class="field__error" role="alert" data-liability-form-error hidden></p>
+        </div>
+        <footer class="dialog__footer">
+          <button class="button button--secondary" type="button" data-liability-close>ยกเลิก</button>
+          <button class="button" type="submit">บันทึก</button>
+        </footer>
+      </form>
+    </dialog>
+
+    <dialog class="dialog" data-quick-dialog aria-labelledby="quick-dialog-title">
+      <form data-quick-form>
+        <header class="dialog__header">
+          <h2 id="quick-dialog-title" data-quick-title>อัปเดตมูลค่า</h2>
+          <button class="icon-button" type="button" data-quick-close aria-label="ปิด">
+            <span data-icon="x"></span>
+          </button>
+        </header>
+        <div class="dialog__body">
+          <input name="entityType" type="hidden" />
+          <input name="id" type="hidden" />
+          <p class="quick-current" data-quick-current></p>
+          <label class="field">
+            <span class="field__label">ยอดใหม่</span>
+            <input class="field__input" name="value" type="number" min="0" required />
+          </label>
+          <p class="field__error" role="alert" data-quick-form-error hidden></p>
+        </div>
+        <footer class="dialog__footer">
+          <button class="button button--secondary" type="button" data-quick-close>ยกเลิก</button>
+          <button class="button" type="submit">อัปเดต</button>
+        </footer>
+      </form>
+    </dialog>
+
+    <dialog class="dialog dialog--wide" data-history-dialog aria-labelledby="history-dialog-title">
+      <header class="dialog__header">
+        <h2 id="history-dialog-title" data-history-title>ประวัติมูลค่า</h2>
+        <button class="icon-button" type="button" data-history-close aria-label="ปิด">
+          <span data-icon="x"></span>
+        </button>
+      </header>
+      <div class="dialog__body" data-history-body></div>
     </dialog>
 
     <dialog class="dialog" data-more-dialog aria-labelledby="more-dialog-title">
