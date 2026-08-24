@@ -128,6 +128,43 @@ Exit criteria:
 หมายเหตุ: Emergency Fund และ Savings Rate ที่ต้องใช้ monthly expense ให้แสดงเป็น
 `Not available` จนกว่าจะมี Transactions ใน post-MVP ห้ามสมมติค่าใช้จ่ายแทนผู้ใช้
 
+## Phase 4.5 - Monthly Finance
+
+เป้าหมาย: แทน spreadsheet รายเดือนด้วยข้อมูลที่แยกประเภทถูกต้องและปิดเดือนได้
+
+- [ ] Month selector และสถานะเดือน Draft/Closed
+- [ ] รายการ Income, Expense และ Transfer พร้อมหมวดหมู่
+- [ ] Budget plan เทียบ Actual โดย Actual คำนวณจากรายการเท่านั้น
+- [ ] Recurring items สำหรับรายการที่เกิดซ้ำทุกเดือน
+- [ ] Monthly cash flow, savings amount และ savings rate
+- [ ] Allocation summary แยกเงินออม/ลงทุนออกจากค่าใช้จ่าย
+- [ ] Reconciliation เทียบ closing cash กับยอด Asset ที่เลือก
+- [ ] Close/Reopen Month พร้อมสร้าง monthly snapshot แบบ idempotent
+- [ ] empty/loading/error states และ focused tests สำหรับ calculation/mutation
+
+Exit criteria:
+
+- Transfer ไม่ถูกนับเป็นรายจ่าย และไม่ทำให้ Net Worth ลดลง
+- summary ทุกจุดคำนวณจากรายการต้นทาง ไม่มี total ที่กรอกซ้ำ
+- ปิดเดือนเดิมซ้ำไม่สร้าง snapshot หรือ recurring records ซ้ำ
+
+## Phase 4.6 - Annual Finance Report
+
+เป้าหมาย: รวมภาพ 12 เดือนโดยรักษาความหมายของ flow และ point-in-time balance
+
+- [ ] สรุป Income, Expense, Savings และ Savings Rate รายเดือน/ทั้งปี
+- [ ] Opening/Closing Net Worth และการเติบโตทั้งปี
+- [ ] กราฟ cash flow, expense categories และ Net Worth trend
+- [ ] annual average และ month comparison
+- [ ] export CSV ที่นำกลับไปตรวจใน Excel/Google Sheets ได้
+- [ ] year/empty/partial/error states และ report calculation tests
+
+Exit criteria:
+
+- Net Worth รายปีใช้ Closing ลบ Opening และไม่รวมยอด Net Worth ของแต่ละเดือน
+- flow totals รวมเฉพาะเดือนในปีที่เลือกและไม่รวม Transfer เป็น Income/Expense
+- CSV totals ตรงกับหน้ารายงาน
+
 ## Phase 5 - Goals, Onboarding and UX Completion
 
 เป้าหมาย: ทำ workflow รองและ first-use experience ให้ MVP สมบูรณ์
@@ -244,13 +281,13 @@ Exit criteria:
 | ----------------------- | --------------- | ------------------------------------------ |
 | M1: Clickable Prototype | 0-1             | Shell และ UI states ใช้งานได้ทุก viewport  |
 | M2: Local MVP Core      | 2-3             | จัดการ assets/liabilities และ history ได้  |
-| M3: Complete Local MVP  | 4-6             | Dashboard, goals, onboarding และ tests ครบ |
+| M3: Complete Local MVP  | 4-6             | Dashboard, monthly finance, goals และ tests ครบ |
 | M4: Secure Cloud MVP    | 7-8             | Supabase persistence, auth และ RLS ผ่าน    |
 | M5: Production Release  | 9               | Deploy และ smoke test บน GitHub Pages      |
 
 ## Scope Guardrails
 
-- ห้ามเริ่ม Transactions ก่อน M4 เว้นแต่มีการปรับ scope อย่างชัดเจน
+- Transactions รายเดือนเป็น MVP ตาม Phase 4.5; external price feeds ยังรอหลัง M4
 - ห้ามผูก page เข้ากับ Supabase client โดยตรง ให้ผ่าน service/repository เสมอ
 - ห้ามคำนวณยอดด้วย formatted strings ให้ใช้ numeric values แล้ว format ตอนแสดงผล
 - ห้ามใช้ delete จริงเป็นค่าเริ่มต้นสำหรับ financial records ให้ใช้ deactivate/archive

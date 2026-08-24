@@ -2,6 +2,7 @@ import { createDatabase, migrateDatabase } from "../data/schema.js";
 import { isDate } from "../domain/contracts.js";
 import { normalizeAmount, normalizeAsset, normalizeLiability } from "../domain/normalizers.js";
 import { AppError, ERROR_CODES, validationError } from "../errors/app-error.js";
+import { normalizeTransaction } from "../domain/monthly-finance.js";
 
 function clone(value) {
   return structuredClone(value);
@@ -260,6 +261,53 @@ export function createWealthRepository({
         .slice(0, Math.max(0, limit))
         .map(({ activity }) => activity);
       return clone(records);
+    },
+
+    async listTransactions({ includeInactive = false } = {}) {
+      const records = includeInactive
+        ? database.transactions
+        : database.transactions.filter((transaction) => transaction.isActive);
+      return clone(records);
+    },
+
+    async createTransaction(input) {
+      const timestamp = clock();
+      const transaction = normalizeTransaction(input, {
+        id: idGenerator(),
+        now: timestamp,
+      });
+      return commit((draft) => {
+        draft.transactions.push(transaction);
+        draft.activities.push(
+          createActivity(
+            "transaction",
+            transaction.id,
+            "transaction_created",
+            transaction.amount,
+            timestamp,
+          ),
+        );
+        return transaction;
+      });
+    },
+
+    async deactivateTransaction(id) {
+      const timestamp = clock();
+      return commit((draft) => {
+        const transaction = findRecord(draft.transactions, id, "Transaction");
+        transaction.isActive = false;
+        transaction.updatedAt = timestamp;
+        draft.activities.push(
+          createActivity(
+            "transaction",
+            id,
+            "transaction_deactivated",
+            transaction.amount,
+            timestamp,
+          ),
+        );
+        return transaction;
+      });
     },
 
     async listGoals() {

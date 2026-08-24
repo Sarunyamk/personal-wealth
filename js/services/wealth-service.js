@@ -10,6 +10,10 @@ import {
   calculateSnapshotChange,
   toMonthStart,
 } from "../domain/dashboard.js";
+import {
+  filterTransactionsByMonth,
+  summarizeMonthlyTransactions,
+} from "../domain/monthly-finance.js";
 
 const INVESTMENT_CATEGORIES = new Set(["investment", "stock", "fund", "crypto", "gold"]);
 
@@ -106,6 +110,19 @@ export function createWealthService(repository) {
     updateLiabilityBalance: (id, value) => repository.updateLiabilityBalance(id, value),
     listLiabilityValueHistory: (id) => repository.listLiabilityValueHistory(id),
     listActivities: (options) => repository.listActivities(options),
+    async getMonthlyFinance(month) {
+      const transactions = filterTransactionsByMonth(
+        await repository.listTransactions(),
+        month,
+      );
+      return Object.freeze({
+        month,
+        transactions,
+        summary: summarizeMonthlyTransactions(transactions),
+      });
+    },
+    createTransaction: (input) => repository.createTransaction(input),
+    deactivateTransaction: (id) => repository.deactivateTransaction(id),
     listSnapshots: () => repository.listSnapshots(),
     listGoals: () => repository.listGoals(),
   });

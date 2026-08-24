@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { LOCAL_STORAGE_KEY } from "../js/data/schema.js";
+import { DATA_SCHEMA_VERSION, LOCAL_STORAGE_KEY } from "../js/data/schema.js";
 import { ERROR_CODES } from "../js/errors/app-error.js";
 import { createLocalStorageWealthRepository } from "../js/repositories/local-storage-wealth-repository.js";
 import { createMemoryWealthRepository } from "../js/repositories/memory-wealth-repository.js";
@@ -108,7 +108,36 @@ test("local storage adapter restores committed records after recreation", async 
 
   const secondRepository = createLocalStorageWealthRepository(options);
   assert.equal((await secondRepository.listAssets())[0].currentValue, 5000);
-  assert.equal(JSON.parse(storage.getItem(LOCAL_STORAGE_KEY)).schemaVersion, 1);
+  assert.equal(
+    JSON.parse(storage.getItem(LOCAL_STORAGE_KEY)).schemaVersion,
+    DATA_SCHEMA_VERSION,
+  );
+});
+
+test("transaction mutations persist atomically and preserve archived records", async () => {
+  const repository = createMemoryWealthRepository({
+    idGenerator: createIdGenerator(),
+    clock: fixedClock,
+  });
+  const transaction = await repository.createTransaction({
+    type: "transfer",
+    name: "Dime and ETF",
+    category: "investment",
+    amount: "5000",
+    transactionDate: "2026-08-24",
+  });
+
+  await repository.deactivateTransaction(transaction.id);
+
+  assert.deepEqual(await repository.listTransactions(), []);
+  assert.equal(
+    (await repository.listTransactions({ includeInactive: true }))[0].amount,
+    5000,
+  );
+  assert.deepEqual(
+    (await repository.listActivities()).map((activity) => activity.action),
+    ["transaction_deactivated", "transaction_created"],
+  );
 });
 
 test("failed persistence leaves repository state unchanged", async () => {

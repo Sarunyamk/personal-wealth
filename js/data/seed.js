@@ -3,9 +3,17 @@ export const EMPTY_SEED = Object.freeze({
   liabilities: Object.freeze([]),
   goals: Object.freeze([]),
   snapshots: Object.freeze([]),
+  transactions: Object.freeze([]),
+  monthlyRecords: Object.freeze([]),
+  budgets: Object.freeze([]),
+  recurringTransactions: Object.freeze([]),
 });
 
 export const DEMO_SEED = Object.freeze({
+  transactions: Object.freeze([]),
+  monthlyRecords: Object.freeze([]),
+  budgets: Object.freeze([]),
+  recurringTransactions: Object.freeze([]),
   assets: Object.freeze([
     Object.freeze({
       id: "10000000-0000-4000-8000-000000000001",

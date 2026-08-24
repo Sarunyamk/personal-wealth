@@ -1,6 +1,6 @@
 import { AppError, ERROR_CODES } from "../errors/app-error.js";
 
-export const DATA_SCHEMA_VERSION = 1;
+export const DATA_SCHEMA_VERSION = 2;
 export const LOCAL_STORAGE_KEY = "personal-wealth:data";
 
 const COLLECTIONS = Object.freeze([
@@ -11,6 +11,10 @@ const COLLECTIONS = Object.freeze([
   "goals",
   "snapshots",
   "activities",
+  "transactions",
+  "monthlyRecords",
+  "budgets",
+  "recurringTransactions",
 ]);
 
 function clone(value) {
@@ -41,6 +45,6 @@ export function migrateDatabase(rawData) {
     });
   }
 
-  if (version === 0) return createDatabase(rawData);
+  if (version === 0 || version === 1) return createDatabase(rawData);
   return createDatabase(rawData);
 }
