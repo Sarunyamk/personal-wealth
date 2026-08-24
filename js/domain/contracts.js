@@ -112,7 +112,15 @@ export function validateLiability(liability) {
   return errors;
 }
 
-export function assertValidSeedData({ assets, liabilities, goals, snapshots }) {
+export function assertValidSeedData({
+  assets,
+  liabilities,
+  goals,
+  snapshots,
+  transactions = [],
+  budgets = [],
+  goalContributions = [],
+}) {
   const errors = [];
   assets.forEach((asset, index) => {
     errors.push(...validateAsset(asset).map((error) => `assets[${index}]: ${error}`));
@@ -123,6 +131,38 @@ export function assertValidSeedData({ assets, liabilities, goals, snapshots }) {
   goals.forEach((goal, index) => {
     if (!isUuid(goal.id)) errors.push(`goals[${index}]: id must be a UUID`);
     if (!isDate(goal.targetDate)) errors.push(`goals[${index}]: targetDate is invalid`);
+    if (!Number.isFinite(goal.targetAmount) || goal.targetAmount <= 0) {
+      errors.push(`goals[${index}]: targetAmount must be positive`);
+    }
+    if (!Number.isFinite(goal.currentAmount) || goal.currentAmount < 0 || goal.currentAmount > goal.targetAmount) {
+      errors.push(`goals[${index}]: currentAmount is invalid`);
+    }
+  });
+  transactions.forEach((transaction, index) => {
+    if (!isUuid(transaction.id)) errors.push(`transactions[${index}]: id must be a UUID`);
+    if (!isDate(transaction.transactionDate)) {
+      errors.push(`transactions[${index}]: transactionDate is invalid`);
+    }
+    if (!["income", "expense", "transfer"].includes(transaction.type)) {
+      errors.push(`transactions[${index}]: type is invalid`);
+    }
+    if (!Number.isFinite(transaction.amount) || transaction.amount <= 0) {
+      errors.push(`transactions[${index}]: amount must be positive`);
+    }
+  });
+  budgets.forEach((budget, index) => {
+    if (!isUuid(budget.id)) errors.push(`budgets[${index}]: id must be a UUID`);
+    if (!isDate(`${budget.month}-01`)) errors.push(`budgets[${index}]: month is invalid`);
+    if (!Number.isFinite(budget.plannedAmount) || budget.plannedAmount < 0) {
+      errors.push(`budgets[${index}]: plannedAmount is invalid`);
+    }
+  });
+  goalContributions.forEach((contribution, index) => {
+    if (!isUuid(contribution.id)) errors.push(`goalContributions[${index}]: id must be a UUID`);
+    if (!isUuid(contribution.goalId)) errors.push(`goalContributions[${index}]: goalId must be a UUID`);
+    if (!isDate(contribution.contributionDate)) {
+      errors.push(`goalContributions[${index}]: contributionDate is invalid`);
+    }
   });
   snapshots.forEach((snapshot, index) => {
     if (!isUuid(snapshot.id)) errors.push(`snapshots[${index}]: id must be a UUID`);

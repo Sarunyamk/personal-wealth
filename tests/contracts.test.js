@@ -38,3 +38,22 @@ test("asset validation reports invalid financial fields", () => {
 
   assert.ok(errors.length >= 7);
 });
+
+test("seed validation rejects malformed transaction and budget fixtures", () => {
+  assert.throws(() =>
+    assertValidSeedData({
+      ...EMPTY_SEED,
+      transactions: [{
+        id: "bad-id",
+        type: "purchase",
+        amount: 0,
+        transactionDate: "2026-02-31",
+      }],
+      budgets: [{
+        id: "bad-id",
+        month: "2026-13",
+        plannedAmount: -1,
+      }],
+    }),
+  );
+});

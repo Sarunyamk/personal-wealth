@@ -187,12 +187,12 @@ Exit criteria:
 
 เป้าหมาย: freeze พฤติกรรมของ frontend ก่อนผูกระบบจริง
 
-- [ ] Unit tests สำหรับ calculations, validators และ formatters
-- [ ] Integration tests สำหรับ quick update, history, snapshot และ goal contribution
-- [ ] End-to-end smoke flow บน desktop/mobile
-- [ ] ตรวจ accessibility, keyboard flow และ contrast
-- [ ] ตรวจ performance และลด render/chart work ที่ซ้ำ
-- [ ] ตรวจ test fixtures และ data contracts เทียบกับ schema ที่จะสร้าง
+- [x] Unit tests สำหรับ calculations, validators และ formatters
+- [x] Integration tests สำหรับ quick update, history, snapshot และ goal contribution
+- [x] End-to-end smoke flow บน desktop/mobile
+- [x] ตรวจ accessibility, keyboard flow และ contrast
+- [x] ตรวจ performance และลด render/chart work ที่ซ้ำ
+- [x] ตรวจ test fixtures และ data contracts เทียบกับ schema ที่จะสร้าง
 
 Exit criteria:
 

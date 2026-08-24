@@ -83,11 +83,11 @@ export function renderMonthlyFinanceView({ data, isPrivate }) {
       <button class="button button--secondary" type="button" data-budget-open ${isClosed ? "disabled" : ""}>${icon("plus")}เพิ่มแผน</button></header>
       ${
         budgetComparison.length
-          ? `<div class="card budget-table" role="table" aria-label="แผนเทียบยอดจริง">
-            <div class="budget-row budget-row--head" role="row"><span>หมวด</span><span>แผน</span><span>จริง</span><span>ต่าง</span></div>
+          ? `<div class="card budget-table" aria-label="แผนเทียบยอดจริง">
+            <div class="budget-row budget-row--head"><span>หมวด</span><span>แผน</span><span>จริง</span><span>ต่าง</span></div>
             ${budgetComparison
               .map(
-                (item) => `<button class="budget-row" type="button" role="row" data-budget-open data-type="${item.type}" data-category="${escapeHtml(item.category)}" ${isClosed ? "disabled" : ""}>
+                (item) => `<button class="budget-row" type="button" data-budget-open data-type="${item.type}" data-category="${escapeHtml(item.category)}" ${isClosed ? "disabled" : ""}>
                   <span><strong>${escapeHtml(item.category)}</strong><small>${TYPE_LABELS[item.type]}</small></span>
                   <span>${amount(item.plannedAmount, isPrivate)}</span><span>${amount(item.actualAmount, isPrivate)}</span>
                   <span class="${item.variance < 0 ? "budget-negative" : "budget-positive"}">${amount(item.variance, isPrivate)}</span></button>`,
