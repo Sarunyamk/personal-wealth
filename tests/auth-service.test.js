@@ -53,6 +53,12 @@ test("auth service restores sessions and unsubscribes listeners", async () => {
   assert.equal(client.calls.at(-1)[0], "unsubscribe");
 });
 
+test("auth service exposes the session subscription contract used by the loader", () => {
+  const auth = createAuthService(authClient());
+  assert.equal(typeof auth.subscribe, "function");
+  assert.equal("onAuthStateChange" in auth, false);
+});
+
 test("auth service validates credentials before calling Supabase", async () => {
   const client = authClient();
   const auth = createAuthService(client);

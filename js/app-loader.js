@@ -59,7 +59,7 @@ if (!client) {
     } else {
       globalThis.__ALLOW_LOCAL_DEMO__ = false;
       globalThis.__SUPABASE_CLIENT__ = client;
-      auth.onAuthStateChange(({ event }) => {
+      auth.subscribe(({ event }) => {
         if (shouldReturnToLogin(event)) window.location.reload();
       });
       const logout = document.querySelector("[data-auth-logout]");
