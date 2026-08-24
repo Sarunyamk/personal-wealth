@@ -79,3 +79,37 @@ test("browser inserts derive user ownership from the authenticated database sess
     );
   }
 });
+
+test("RLS denies anonymous table access and scopes every user-owned table", () => {
+  const userTables = [
+    "assets",
+    "liabilities",
+    "asset_value_history",
+    "liability_value_history",
+    "recurring_transactions",
+    "transactions",
+    "budgets",
+    "monthly_records",
+    "goals",
+    "goal_contributions",
+    "snapshots",
+    "activities",
+  ];
+  for (const table of userTables) {
+    assert.match(migration, new RegExp(`alter table public\\.${table} enable row level security;`));
+    assert.match(migration, new RegExp(`revoke all on table public\\.${table} from anon;`));
+    assert.match(
+      migration,
+      new RegExp(`create policy [^\\n]+ on public\\.${table}[\\s\\S]+?auth\\.uid\\(\\)`),
+    );
+  }
+});
+
+test("new auth users receive a profile without exposing the trigger function", () => {
+  assert.match(migration, /create function public\.handle_new_user\(\)/);
+  assert.match(migration, /after insert on auth\.users/);
+  assert.match(
+    migration,
+    /revoke all on function public\.handle_new_user\(\) from public, anon, authenticated;/,
+  );
+});
