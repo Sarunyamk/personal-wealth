@@ -1,0 +1,67 @@
+:root,
+[data-theme="fresh"] {
+  color-scheme: light;
+
+  --palette-white: #ffffff;
+  --palette-ink-950: #19171f;
+  --palette-ink-700: #54505d;
+  --palette-ink-200: #dfdce5;
+  --palette-lavender-50: #f8f6fc;
+  --palette-indigo-700: #4b47a8;
+  --palette-violet-600: #6d57c7;
+  --palette-mint-600: #16856b;
+  --palette-coral-600: #c94c5c;
+  --palette-blue-600: #2676bb;
+  --palette-orange-600: #bd6a2a;
+
+  --color-page: var(--palette-lavender-50);
+  --color-surface: var(--palette-white);
+  --color-surface-subtle: #f0edf7;
+  --color-text: var(--palette-ink-950);
+  --color-text-muted: var(--palette-ink-700);
+  --color-border: var(--palette-ink-200);
+  --color-primary: var(--palette-indigo-700);
+  --color-primary-strong: #393586;
+  --color-asset: var(--palette-mint-600);
+  --color-liability: var(--palette-coral-600);
+  --color-cash: var(--palette-blue-600);
+  --color-property: var(--palette-orange-600);
+  --color-focus: #276ed8;
+
+  --font-sans: "Noto Sans Thai", "Leelawadee UI", system-ui, sans-serif;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.75rem;
+  --font-size-2xl: 2.25rem;
+  --line-height-body: 1.6;
+  --line-height-heading: 1.25;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --shadow-surface: 0 0.5rem 1.5rem rgb(25 23 31 / 8%);
+  --content-max: 68rem;
+
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+}
+
+[data-theme="high-contrast"] {
+  --color-page: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #eeeeee;
+  --color-text: #000000;
+  --color-text-muted: #292929;
+  --color-border: #505050;
+  --color-primary: #252078;
+  --color-primary-strong: #15114f;
+}

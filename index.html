@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="th" data-theme="fresh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Personal Wealth Dashboard" />
+    <title>Personal Wealth</title>
+    <link rel="stylesheet" href="css/variables.css" />
+    <link rel="stylesheet" href="css/reset.css" />
+    <link rel="stylesheet" href="css/base.css" />
+  </head>
+  <body>
+    <main class="foundation" aria-labelledby="page-title">
+      <p class="foundation__eyebrow">Personal Wealth</p>
+      <h1 id="page-title">Foundation พร้อมสำหรับเริ่มสร้างแอป</h1>
+      <p class="foundation__intro">
+        Phase 0 แยก theme, business rules และ data contracts ออกจากหน้าจอแล้ว
+      </p>
+
+      <section class="summary" aria-label="ข้อมูลตัวอย่างสำหรับตรวจสอบสูตร">
+        <div class="summary__item">
+          <span>Assets</span>
+          <strong data-summary="assets">กำลังคำนวณ...</strong>
+        </div>
+        <div class="summary__item">
+          <span>Liabilities</span>
+          <strong data-summary="liabilities">กำลังคำนวณ...</strong>
+        </div>
+        <div class="summary__item summary__item--primary">
+          <span>Net Worth</span>
+          <strong data-summary="net-worth">กำลังคำนวณ...</strong>
+        </div>
+      </section>
+
+      <p class="foundation__status" role="status" data-app-status>
+        กำลังตรวจสอบ foundation...
+      </p>
+    </main>
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>
