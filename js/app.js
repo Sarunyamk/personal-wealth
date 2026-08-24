@@ -1,12 +1,12 @@
 import { hydrateIcons } from "./components/icons.js";
 import { showToast } from "./components/toast.js";
+import { createAppServices } from "./bootstrap.js";
 import {
   NAVIGATION,
   PRIMARY_MOBILE_VIEWS,
   getNavigationItem,
   getViewIdFromHash,
 } from "./config/navigation.js";
-import { getDemoSummary } from "./services/demo-summary.js";
 import { createPrivacyState, presentAmount } from "./state/privacy.js";
 import { formatCurrency } from "./utils/formatters.js";
 
@@ -16,7 +16,8 @@ const privacyButton = document.querySelector("[data-privacy-toggle]");
 const entryDialog = document.querySelector("[data-entry-dialog]");
 const moreDialog = document.querySelector("[data-more-dialog]");
 const privacyState = createPrivacyState();
-const summary = getDemoSummary();
+const { wealth } = createAppServices();
+let summary;
 
 function iconPlaceholder(name) {
   return `<span data-icon="${name}"></span>`;
@@ -85,8 +86,8 @@ function renderDashboard() {
           ${iconPlaceholder("trending-up")}<span>+4.2% this month</span>
         </p>
       </article>
-      ${metricCard("Total Assets", summary.totalAssets, "wallet-cards", "asset", "3 accounts")}
-      ${metricCard("Total Debt", summary.totalLiabilities, "landmark", "liability", "1 active loan")}
+      ${metricCard("Total Assets", summary.totalAssets, "wallet-cards", "asset", `${summary.assetCount} accounts`)}
+      ${metricCard("Total Debt", summary.totalLiabilities, "landmark", "liability", `${summary.liabilityCount} active loan`)}
       ${metricCard("Liquid Cash", summary.liquidAssets, "circle-dollar-sign", "cash", "Available now")}
       ${chartPlaceholder("Net Worth", "Monthly trend", "chart-no-axes-combined", "")}
       ${chartPlaceholder("Asset Allocation", "By category", "wallet-cards", "chart-placeholder--allocation")}
@@ -181,12 +182,32 @@ function bindInteractions() {
     if (event.target.closest("[data-more-close]")) moreDialog.close();
     if (event.target.closest("[data-more-link]")) moreDialog.close();
   });
-  document.querySelector("[data-entry-form]").addEventListener("submit", () => {
-    showToast("บันทึกรายการตัวอย่างแล้ว");
+  document.querySelector("[data-entry-form]").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    try {
+      await wealth.createAsset({
+        name: data.get("name"),
+        currentValue: data.get("value"),
+        category: "other",
+        currency: "THB",
+        liquidityLevel: "low",
+      });
+      summary = await wealth.getSummary();
+      form.reset();
+      entryDialog.close();
+      if (getViewIdFromHash(window.location.hash) === "dashboard") renderCurrentView();
+      showToast("บันทึก Asset แล้ว");
+    } catch (error) {
+      showToast("บันทึกไม่สำเร็จ กรุณาตรวจสอบข้อมูล");
+      console.error(error);
+    }
   });
 }
 
 try {
+  summary = await wealth.getSummary();
   renderNavigation();
   hydrateIcons();
   bindInteractions();

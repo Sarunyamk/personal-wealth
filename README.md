@@ -33,6 +33,7 @@ Open `http://localhost:4173` after running `npm start`.
 - `js/domain/`: pure financial calculations and data contracts
 - `js/utils/`: formatting helpers without DOM or persistence concerns
 - `js/data/`: development seed fixtures; page modules must not import these directly
+- `js/repositories/`: shared repository behavior and persistence adapters
 - `js/services/`: use-case boundary consumed by UI code
 - `js/app.js`: DOM entry point
 - `tests/`: Node unit and contract tests
@@ -40,6 +41,10 @@ Open `http://localhost:4173` after running `npm start`.
 Page modules may call services, but must not import storage adapters, seed fixtures,
 or a future Supabase client. Amounts remain numeric until the presentation layer
 formats them.
+
+Local data uses a versioned document under `personal-wealth:data`. Mutations clone,
+validate and persist the next document before replacing in-memory state, so a
+failed storage write cannot leave the two representations out of sync.
 
 ## Naming and compatibility
 

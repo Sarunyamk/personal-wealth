@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 const html = readFileSync("index.html", "utf8");
 const layout = readFileSync("css/layout.css", "utf8");
 const components = readFileSync("css/components.css", "utf8");
+const appModule = readFileSync("js/app.js", "utf8");
 const failures = [];
 
 const requiredHtmlPatterns = [
@@ -30,6 +31,9 @@ if (!layout.includes("padding-bottom: calc(var(--mobile-nav-height)")) {
 }
 if (!components.includes("max-height: calc(100dvh")) {
   failures.push("Dialog has no viewport height constraint.");
+}
+if (/localStorage|data\/seed|repositories\//.test(appModule)) {
+  failures.push("The page entry point bypasses its service boundary.");
 }
 
 if (failures.length > 0) {

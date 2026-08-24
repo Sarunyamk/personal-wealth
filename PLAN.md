@@ -73,12 +73,12 @@ Exit criteria:
 
 เป้าหมาย: ทำ data API ภายในให้หน้าจอใช้เหมือน backend จริง
 
-- [ ] สร้าง repository/service interface เช่น `listAssets`, `createAsset`, `updateAssetValue`
-- [ ] ทำ local-storage adapter พร้อม schema version
-- [ ] ทำ in-memory/mock adapter สำหรับ tests และ demos
-- [ ] validate และ normalize input ก่อนบันทึก
-- [ ] สร้าง event/activity records จาก mutation สำคัญ
-- [ ] เตรียม error contract กลางสำหรับ UI
+- [x] สร้าง repository/service interface เช่น `listAssets`, `createAsset`, `updateAssetValue`
+- [x] ทำ local-storage adapter พร้อม schema version
+- [x] ทำ in-memory/mock adapter สำหรับ tests และ demos
+- [x] validate และ normalize input ก่อนบันทึก
+- [x] สร้าง event/activity records จาก mutation สำคัญ
+- [x] เตรียม error contract กลางสำหรับ UI
 
 Exit criteria:
 

@@ -36,6 +36,13 @@ export function validateAsset(asset) {
   if (!Number.isFinite(asset?.currentValue) || asset.currentValue < 0) {
     errors.push("currentValue must be a non-negative finite number");
   }
+  if (
+    asset?.purchaseValue !== null &&
+    asset?.purchaseValue !== undefined &&
+    (!Number.isFinite(asset.purchaseValue) || asset.purchaseValue < 0)
+  ) {
+    errors.push("purchaseValue must be a non-negative finite number or null");
+  }
   if (!CURRENCIES.includes(asset?.currency)) errors.push("currency is unsupported");
   if (!LIQUIDITY_LEVELS.includes(asset?.liquidityLevel)) {
     errors.push("liquidityLevel is invalid");
@@ -52,6 +59,9 @@ export function validateLiability(liability) {
   if (typeof liability?.name !== "string" || liability.name.trim() === "") {
     errors.push("name is required");
   }
+  if (typeof liability?.category !== "string" || liability.category.trim() === "") {
+    errors.push("category is required");
+  }
   if (!Number.isFinite(liability?.originalAmount) || liability.originalAmount < 0) {
     errors.push("originalAmount must be a non-negative finite number");
   }
@@ -60,6 +70,41 @@ export function validateLiability(liability) {
   }
   if (liability?.currentBalance > liability?.originalAmount) {
     errors.push("currentBalance cannot exceed originalAmount");
+  }
+  if (
+    liability?.interestRate !== null &&
+    liability?.interestRate !== undefined &&
+    (!Number.isFinite(liability.interestRate) || liability.interestRate < 0)
+  ) {
+    errors.push("interestRate must be a non-negative finite number or null");
+  }
+  if (
+    liability?.monthlyPayment !== null &&
+    liability?.monthlyPayment !== undefined &&
+    (!Number.isFinite(liability.monthlyPayment) || liability.monthlyPayment < 0)
+  ) {
+    errors.push("monthlyPayment must be a non-negative finite number or null");
+  }
+  if (
+    liability?.startDate !== null &&
+    liability?.startDate !== undefined &&
+    !isDate(liability.startDate)
+  ) {
+    errors.push("startDate must be a valid date or null");
+  }
+  if (
+    liability?.endDate !== null &&
+    liability?.endDate !== undefined &&
+    !isDate(liability.endDate)
+  ) {
+    errors.push("endDate must be a valid date or null");
+  }
+  if (
+    liability?.dueDay !== null &&
+    liability?.dueDay !== undefined &&
+    (!Number.isInteger(liability?.dueDay) || liability.dueDay < 1 || liability.dueDay > 31)
+  ) {
+    errors.push("dueDay must be an integer from 1 to 31 or null");
   }
   if (typeof liability?.isActive !== "boolean") errors.push("isActive must be boolean");
   if (!isTimestamp(liability?.createdAt)) errors.push("createdAt must be an ISO UTC timestamp");
