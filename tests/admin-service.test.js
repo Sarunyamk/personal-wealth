@@ -5,6 +5,10 @@ import { createAdminService } from "../js/services/admin-service.js";
 test("admin service invokes only the server-side account function", async () => {
   const calls = [];
   const admin = createAdminService({
+    async rpc(name) {
+      calls.push([name]);
+      return { data: [{ id: "u1", last_sign_in_at: "2026-08-25T00:00:00Z" }] };
+    },
     functions: {
       async invoke(name, options) {
         calls.push([name, options]);
@@ -12,18 +16,21 @@ test("admin service invokes only the server-side account function", async () => 
       },
     },
   });
-  assert.deepEqual(await admin.listUsers(), [{ id: "u1" }]);
+  assert.deepEqual(await admin.listUsers(), [{ id: "u1", last_sign_in_at: "2026-08-25T00:00:00Z", emailConfirmedAt: undefined, lastSignInAt: "2026-08-25T00:00:00Z" }]);
   await admin.disableUser("u1");
   await admin.enableUser("u1");
   await admin.deleteUser("u1");
   assert.deepEqual(
-    calls.map(([, options]) => options.body.action),
-    ["list", "disable", "enable", "delete"],
+    calls.slice(1).map(([, options]) => options.body.action),
+    ["disable", "enable", "delete"],
   );
 });
 
 test("admin service preserves the Edge Function response error", async () => {
   const admin = createAdminService({
+    async rpc() {
+      return { data: [] };
+    },
     functions: {
       async invoke() {
         return {
@@ -37,8 +44,22 @@ test("admin service preserves the Edge Function response error", async () => {
     },
   });
 
-  await assert.rejects(admin.listUsers(), (error) => {
+  await assert.rejects(admin.disableUser("u1"), (error) => {
     assert.deepEqual(error.details, ["Forbidden", "Edge Function returned a non-2xx status code"]);
     return true;
   });
+});
+
+test("admin user listing reports database RPC errors without invoking the Edge Function", async () => {
+  let invoked = false;
+  const admin = createAdminService({
+    async rpc(name) {
+      assert.equal(name, "admin_list_users");
+      return { error: { message: "ADMIN_REQUIRED" } };
+    },
+    functions: { async invoke() { invoked = true; } },
+  });
+
+  await assert.rejects(admin.listUsers(), (error) => error.details.includes("ADMIN_REQUIRED"));
+  assert.equal(invoked, false);
 });

@@ -1,7 +1,7 @@
 import { AppError, ERROR_CODES } from "../errors/app-error.js";
 
 export function createAdminService(client) {
-  if (!client?.functions?.invoke) throw new TypeError("A Supabase Functions client is required.");
+  if (!client?.rpc || !client?.functions?.invoke) throw new TypeError("A Supabase admin client is required.");
 
   async function invoke(action, userId) {
     const { data, error } = await client.functions.invoke("admin-users", {
@@ -27,7 +27,18 @@ export function createAdminService(client) {
 
   return Object.freeze({
     async listUsers() {
-      return (await invoke("list")).users ?? [];
+      const { data, error } = await client.rpc("admin_list_users");
+      if (error) {
+        throw new AppError(ERROR_CODES.AUTH, "Unable to list users.", {
+          cause: error,
+          details: [error.message].filter(Boolean),
+        });
+      }
+      return (data ?? []).map((user) => ({
+        ...user,
+        emailConfirmedAt: user.email_confirmed_at,
+        lastSignInAt: user.last_sign_in_at,
+      }));
     },
     disableUser: (userId) => invoke("disable", userId),
     enableUser: (userId) => invoke("enable", userId),

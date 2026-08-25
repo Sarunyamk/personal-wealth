@@ -10,6 +10,10 @@ const edgeFunction = readFileSync(
   new URL("../supabase/functions/admin-users/index.ts", import.meta.url),
   "utf8",
 );
+const adminListMigration = readFileSync(
+  new URL("../supabase/migrations/202608250002_admin_list_users.sql", import.meta.url),
+  "utf8",
+);
 
 test("disabled accounts are restricted from every user-owned table", () => {
   for (const table of [
@@ -34,6 +38,15 @@ test("disabled accounts are restricted from every user-owned table", () => {
     );
   }
   assert.match(migration, /status = 'active'/);
+});
+
+test("admin user listing is an authenticated database RPC", () => {
+  assert.match(adminListMigration, /create or replace function public\.admin_list_users\(\)/);
+  assert.match(adminListMigration, /security definer/);
+  assert.match(adminListMigration, /actor\.id = \(select auth\.uid\(\)\)/);
+  assert.match(adminListMigration, /actor\.role = 'admin'/);
+  assert.match(adminListMigration, /from auth\.users users/);
+  assert.match(adminListMigration, /grant execute on function public\.admin_list_users\(\) to authenticated/);
 });
 
 test("users cannot promote or reactivate themselves through the browser", () => {
