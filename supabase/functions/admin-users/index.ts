@@ -12,6 +12,17 @@ function response(body: unknown, status = 200) {
   });
 }
 
+function projectKey(keysName: string, legacyName: string) {
+  const keys = Deno.env.get(keysName);
+  if (keys) {
+    const defaultKey = JSON.parse(keys)?.default;
+    if (defaultKey) return defaultKey;
+  }
+  const legacyKey = Deno.env.get(legacyName);
+  if (legacyKey) return legacyKey;
+  throw new Error(`Missing ${keysName} default key`);
+}
+
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
@@ -19,8 +30,8 @@ Deno.serve(async (request) => {
     if (!authorization?.startsWith("Bearer ")) return response({ error: "Unauthorized" }, 401);
 
     const url = Deno.env.get("SUPABASE_URL")!;
-    const publishableKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const publishableKey = projectKey("SUPABASE_PUBLISHABLE_KEYS", "SUPABASE_ANON_KEY");
+    const serviceRoleKey = projectKey("SUPABASE_SECRET_KEYS", "SUPABASE_SERVICE_ROLE_KEY");
     const userClient = createClient(url, publishableKey, {
       global: { headers: { Authorization: authorization } },
       auth: { persistSession: false, autoRefreshToken: false },

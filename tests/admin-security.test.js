@@ -43,6 +43,8 @@ test("users cannot promote or reactivate themselves through the browser", () => 
 
 test("admin operations stay server-side and protect critical accounts", () => {
   assert.match(edgeFunction, /SUPABASE_SERVICE_ROLE_KEY/);
+  assert.match(edgeFunction, /SUPABASE_SECRET_KEYS/);
+  assert.match(edgeFunction, /SUPABASE_PUBLISHABLE_KEYS/);
   assert.match(edgeFunction, /const \{ data: actor, error: actorError \} = await userClient/);
   assert.match(edgeFunction, /auth\.admin\.deleteUser\(userId, false\)/);
   assert.match(edgeFunction, /cannot disable or delete their own account/);
