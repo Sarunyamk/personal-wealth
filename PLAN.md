@@ -27,6 +27,57 @@ database และ user account ไปช่วงท้าย หลังจ�
 8. สมัครสมาชิก, login, logout และ reset password
 9. ข้อมูลผู้ใช้ถูกแยกด้วย Supabase RLS และใช้งานบน GitHub Pages ได้
 
+## Current Execution Plan
+
+ทำงานส่วนที่เหลือตามลำดับนี้ ห้ามเริ่ม phase ถัดไปก่อน quality gate ของ phase ปัจจุบันผ่าน
+หรือระบุ external blocker ไว้ชัดเจน
+
+### Phase A - Supabase Stabilization
+
+- [x] financial data ใช้ Supabase repository ใน production และไม่ fallback ไป localStorage
+- [x] schema, constraints, ownership defaults, profile trigger และ RLS อยู่ใน migrations
+- [x] Admin list ใช้ authenticated `admin_list_users` RPC
+- [ ] รัน migrations ทั้งหมดบน Supabase project ปัจจุบัน
+- [ ] reset migrations บน local Supabase project ว่าง
+- [ ] ทดสอบ direct request ด้วย User A/User B ว่าอ่านและแก้ข้อมูลข้ามบัญชีไม่ได้
+
+### Phase B - Account Lifecycle
+
+- [x] frontend ตรวจ disabled status ตอนเริ่มแอป ทุก 30 วินาที และเมื่อกลับเข้าแท็บ
+- [x] disabled session แจ้งเตือนก่อน logout และแสดงเหตุผลที่หน้า login
+- [x] Edge Function ป้องกัน self-management และ last-admin removal
+- [ ] deploy `admin-users` Edge Function เวอร์ชันล่าสุด
+- [ ] ทดสอบ disable, enable และ delete ด้วยสองบัญชีบน hosted Supabase
+- [ ] ยืนยันว่า delete ลบข้อมูล user-owned ทุกตารางผ่าน cascade
+
+### Phase C - User Settings
+
+- [ ] แก้ display name และ base currency
+- [ ] เลือก theme และ privacy default ผ่าน design tokens
+- [ ] เปลี่ยนรหัสผ่านและ logout ทุกอุปกรณ์
+- [ ] แสดง email, role และ account status แบบ read-only
+- [ ] loading, validation, success และ error states พร้อม focused tests
+
+### Phase D - Session and Security
+
+- [ ] ตั้ง JWT expiry ประมาณ 1 ชั่วโมง, session time-box 7 วัน และ refresh-token rotation
+- [ ] ทดสอบ expired, revoked, banned, offline และ multi-tab sessions
+- [ ] ตรวจ client bundle และ git history ว่าไม่มี secret/service-role key
+- [ ] ทำ security regression tests สำหรับ admin RPC, Edge Function และ RLS
+
+### Phase E - Production Release
+
+- [x] GitHub Pages workflow และ production environment variables
+- [x] production Site URL/Redirect URLs สำหรับ GitHub Pages
+- [ ] production smoke test: auth, wealth CRUD, monthly finance, goals, reports และ admin
+- [ ] ตรวจ 360/768/1024/1440 px, console, overflow และ accessibility บน production
+- [ ] อัปเดต setup, migration, deployment, recovery และ rollback documentation
+- [ ] สร้าง MVP release tag หลังทุก quality gate ผ่าน
+
+### Phase F - Post-MVP
+
+- [ ] เริ่มได้หลัง Phase E เท่านั้น: portfolio pricing, multi-currency, insights และ notifications
+
 ## Phase 0 - Foundation and Decisions
 
 เป้าหมาย: สร้างฐานโปรเจกต์ที่เปลี่ยน data source ภายหลังได้ง่าย
@@ -204,11 +255,11 @@ Exit criteria:
 
 เป้าหมาย: ย้าย persistence ไป PostgreSQL โดยไม่เปลี่ยน UX
 
-- [ ] สร้าง migrations สำหรับ profiles, categories, assets, liabilities, histories,
+- [x] สร้าง migrations สำหรับ profiles, categories, assets, liabilities, histories,
       goals, contributions และ snapshots
-- [ ] เพิ่ม PK/FK, checks, indexes, timestamps และ uniqueness constraints
-- [ ] seed master categories แบบ repeatable
-- [ ] ทำ trigger/function เฉพาะสิ่งที่ต้อง atomic เช่น updated timestamp
+- [x] เพิ่ม PK/FK, checks, indexes, timestamps และ uniqueness constraints
+- [x] seed master categories แบบ repeatable
+- [x] ทำ trigger/function เฉพาะสิ่งที่ต้อง atomic เช่น updated timestamp
 - [x] สร้าง Supabase adapter ให้ตรงกับ service interface เดิม
 - [x] ทำ migration/import path จาก local data ถ้าต้องการเก็บข้อมูล prototype
 
@@ -222,12 +273,12 @@ Exit criteria:
 
 เป้าหมาย: เพิ่ม account หลัง core app เสถียร และยืนยัน data isolation
 
-- [ ] Sign up, login, logout และ reset password
-- [ ] สร้าง profile เมื่อสมัคร และตั้ง THB เป็น default currency
-- [ ] auth guard และ session restore
-- [ ] เปิด RLS ทุก user-owned table
-- [ ] policies สำหรับ SELECT/INSERT/UPDATE/DELETE ด้วย `auth.uid()`
-- [ ] ตรวจ ownership ของ child records เช่น history และ goal contributions
+- [x] Sign up, login, logout และ reset password
+- [x] สร้าง profile เมื่อสมัคร และตั้ง THB เป็น default currency
+- [x] auth guard และ session restore
+- [x] เปิด RLS ทุก user-owned table
+- [x] policies สำหรับ SELECT/INSERT/UPDATE/DELETE ด้วย `auth.uid()`
+- [x] ตรวจ ownership ของ child records เช่น history และ goal contributions
 - [ ] ทดสอบด้วยอย่างน้อย 2 users ว่าอ่าน/แก้ไขข้อมูลข้ามกันไม่ได้
 - [x] จัดการ expired session, offline และ backend errors
 
@@ -243,7 +294,7 @@ Exit criteria:
 
 - [x] เพิ่ม role/status ใน profile และป้องกัน user แก้สิทธิ์ตัวเอง
 - [x] เพิ่ม restrictive RLS gate เพื่อบล็อกบัญชี disabled ทันที
-- [x] เพิ่ม Edge Function สำหรับ list/disable/enable/delete user
+- [x] เพิ่ม secure RPC สำหรับ list และ Edge Function สำหรับ disable/enable/delete user
 - [x] ป้องกัน admin ปิดหรือลบบัญชีตัวเองและ admin คนสุดท้าย
 - [x] สร้าง Admin UI พร้อม loading/empty/error/confirmation states
 - [ ] deploy Edge Function และ promote admin คนแรก
@@ -260,10 +311,10 @@ Exit criteria:
 
 เป้าหมาย: ส่ง MVP ที่ deploy ซ้ำและตรวจสอบได้
 
-- [ ] ตั้ง Supabase URL/anon key ผ่าน config ที่เหมาะกับ static hosting
-- [ ] กำหนด redirect/reset-password URLs สำหรับ GitHub Pages
-- [ ] ทำ production build/check และ deploy workflow
-- [ ] ตรวจ route, asset path, cache และ error handling บน GitHub Pages
+- [x] ตั้ง Supabase URL/publishable key ผ่าน config ที่เหมาะกับ static hosting
+- [x] กำหนด redirect/reset-password URLs สำหรับ GitHub Pages
+- [x] ทำ production build/check และ deploy workflow
+- [x] ตรวจ route, asset path, cache และ error handling บน GitHub Pages
 - [ ] ทำ release smoke test ด้วย account ใหม่
 - [ ] จัดทำ README: setup, local run, tests, migrations และ deploy
 

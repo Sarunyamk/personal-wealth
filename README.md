@@ -1,8 +1,8 @@
 # Personal Wealth Dashboard
 
-Static, mobile-first personal wealth dashboard built with HTML, CSS and vanilla
-JavaScript. The project currently contains the Phase 0 foundation described in
-`PLAN.md`; application screens start in Phase 1.
+Static, mobile-first personal wealth dashboard built with HTML, CSS, vanilla
+JavaScript and Supabase. The application is deployed to GitHub Pages; Supabase
+provides authentication, PostgreSQL persistence, RLS and privileged account actions.
 
 ## Requirements
 
@@ -54,8 +54,11 @@ database passwords and service-role keys must never be added there.
 
 ## Supabase development
 
-The browser continues to use local storage until authentication and RLS are ready. To validate the
-database locally, start Docker Desktop, install the Supabase CLI, then run:
+Production financial data always uses Supabase and never silently falls back to
+localStorage. Local storage is limited to explicit demo mode and non-sensitive UI
+preferences. See `docs/SUPABASE_RUNBOOK.md` for hosted setup and verification.
+
+To validate the database locally, start Docker Desktop, install the Supabase CLI, then run:
 
 ```bash
 npx supabase start
