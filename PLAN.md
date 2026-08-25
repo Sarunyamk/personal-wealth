@@ -49,7 +49,7 @@ database และ user account ไปช่วงท้าย หลังจ�
 - [x] deploy `admin-users` Edge Function เวอร์ชันล่าสุด
 - [x] integration test local สำหรับ disable, ban, enable, delete และ data cascade
 - [ ] ทดสอบ disable, enable และ delete ด้วยสองบัญชีบน hosted Supabase
-- [ ] ยืนยันว่า delete ลบข้อมูล user-owned ทุกตารางผ่าน cascade
+- [x] ยืนยันว่า delete ลบข้อมูล user-owned ทุกตารางผ่าน cascade ด้วย local integration test
 
 ### Phase C - User Settings
 
