@@ -355,7 +355,10 @@ async function submitProfileSettings(event) {
     });
     applyCurrentProfile(profile);
     privacyState.set(profile.privacy_default);
-    await renderCurrentView();
+    field(form, "displayName").value = profile.display_name;
+    field(form, "baseCurrency").value = profile.base_currency;
+    field(form, "theme").value = profile.theme;
+    field(form, "privacyDefault").checked = profile.privacy_default;
     showToast("บันทึกการตั้งค่าแล้ว");
   } catch (error) {
     setFormError(form, error.details?.[0] ?? error.message ?? "บันทึกไม่สำเร็จ");

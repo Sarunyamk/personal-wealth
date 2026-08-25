@@ -34,6 +34,7 @@ test("settings service updates current profile preference fields", async () => {
   };
   const profile = await createSettingsService(client).updateProfile("u1", { displayName: "Mink", baseCurrency: "THB", theme: "fresh", privacyDefault: true });
   assert.equal(profile, result);
+  assert.equal(calls.filter(([method]) => method === "from").length, 1);
   assert.deepEqual(calls.slice(-3), [["update-eq", "id", "u1"], ["update-select", "*"], ["update-single"]]);
 });
 

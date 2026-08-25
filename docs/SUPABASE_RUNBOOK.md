@@ -107,9 +107,10 @@ npm run test:settings
 The smoke test creates an authenticated disposable user, saves all editable preferences, reads
 them back through RLS, verifies that role/status cannot be changed, and removes the user.
 
-The UI treats Supabase as authoritative: Settings fetches the profile whenever the page opens and
-again after saving. Financial and admin mutations complete first, then the current view queries its
-repository again before showing success. Asset currency comes from the persisted profile setting.
+The UI treats Supabase as authoritative: Settings fetches the profile whenever the page opens. A
+save uses the row returned by `UPDATE ... SELECT` to update the UI without a redundant second read.
+Financial and admin mutations complete first, then the current view queries its repository again
+before showing success. Asset currency comes from the persisted profile setting.
 Browser Supabase requests time out after 15 seconds so failed networks release the blocking loader
 and expose a retryable error instead of waiting for the browser's multi-minute network timeout.
 
