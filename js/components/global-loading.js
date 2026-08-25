@@ -1,11 +1,12 @@
-export function createGlobalLoadingController(root = document) {
+export function createGlobalLoadingController(root = document, minimumVisibleMs = 300) {
   const overlay = root.querySelector("[data-global-loading]");
   if (!overlay) throw new Error("Global loading overlay is missing.");
   const label = overlay.querySelector("[data-global-loading-label]");
   let pending = 0;
+  let visibleAt = 0;
+  let hideTimer;
 
-  function update(message) {
-    const active = pending > 0;
+  function setActive(active, message) {
     overlay.hidden = !active;
     if (active && message) label.textContent = message;
     root.querySelectorAll(".app-shell, .auth-shell").forEach((element) => {
@@ -17,14 +18,20 @@ export function createGlobalLoadingController(root = document) {
 
   return Object.freeze({
     begin(message = "กำลังโหลดข้อมูล") {
+      clearTimeout(hideTimer);
       pending += 1;
-      update(message);
+      if (overlay.hidden) visibleAt = Date.now();
+      setActive(true, message);
       let released = false;
       return () => {
         if (released) return;
         released = true;
         pending = Math.max(0, pending - 1);
-        update();
+        if (pending > 0) return;
+        const remaining = Math.max(0, minimumVisibleMs - (Date.now() - visibleAt));
+        hideTimer = setTimeout(() => {
+          if (pending === 0) setActive(false);
+        }, remaining);
       };
     },
     get pending() { return pending; },

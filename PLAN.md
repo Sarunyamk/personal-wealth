@@ -58,6 +58,7 @@ database และ user account ไปช่วงท้าย หลังจ�
 - [x] เปลี่ยนรหัสผ่านและ logout ทุกอุปกรณ์
 - [x] แสดง email, role และ account status แบบ read-only
 - [x] loading, validation, success และ error states พร้อม focused tests
+- [x] integration test ยืนยันการบันทึก/อ่านกลับ profile settings และป้องกัน user แก้ role/status
 
 ### Phase D - Session and Security
 

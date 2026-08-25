@@ -15,12 +15,15 @@ test("profile identity falls back to the email name", () => {
 
 test("profile identity binds base currency labels", () => {
   const element = { textContent: "" };
+  const meta = { textContent: "" };
   const root = {
     querySelectorAll(selector) {
       if (selector === "[data-profile-currency]") return [element];
+      if (selector === ".sidebar__profile-meta") return [meta];
       return [];
     },
   };
   bindProfileIdentity(root, { base_currency: "USD" }, {});
   assert.equal(element.textContent, "USD");
+  assert.equal(meta.textContent, "USD · Personal");
 });

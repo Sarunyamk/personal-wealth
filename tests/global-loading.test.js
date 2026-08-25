@@ -9,9 +9,9 @@ function fixture() {
   return { overlay, shell, root: { querySelector: () => overlay, querySelectorAll: () => [shell] } };
 }
 
-test("global loader blocks the shell until all concurrent work finishes", () => {
+test("global loader blocks the shell until all concurrent work finishes", async () => {
   const { root, overlay, shell } = fixture();
-  const loading = createGlobalLoadingController(root);
+  const loading = createGlobalLoadingController(root, 0);
   const releaseA = loading.begin("Loading A");
   const releaseB = loading.begin("Loading B");
   assert.equal(overlay.hidden, false);
@@ -19,6 +19,7 @@ test("global loader blocks the shell until all concurrent work finishes", () => 
   releaseA();
   assert.equal(overlay.hidden, false);
   releaseB();
+  await new Promise((resolve) => setTimeout(resolve, 0));
   assert.equal(overlay.hidden, true);
   assert.equal(shell.inert, false);
 });

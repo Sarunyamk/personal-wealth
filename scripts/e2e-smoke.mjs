@@ -125,6 +125,7 @@ async function verifyViewport(browser, baseUrl, viewport) {
   const sensitiveValues = await page.locator("[data-sensitive]").allTextContents();
   assert.ok(sensitiveValues.length > 0, "Dashboard has no sensitive values to verify");
   assert.ok(sensitiveValues.every((value) => value.includes("•")), "Privacy Mode leaked a visible amount");
+  await page.locator("[data-global-loading]").waitFor({ state: "hidden" });
 
   if (viewport.width < 1024) {
     const quickAddButton = page.locator("[data-quick-add-open]");

@@ -98,6 +98,15 @@ Migration `202608250004_profile_preferences.sql` adds `privacy_default` and gran
 users column-level update access only to `display_name`, `base_currency`, `theme`, and
 `privacy_default`. Role, status, and disabled state remain admin-controlled.
 
+After `supabase start` and `supabase db reset`, verify profile persistence and protected columns:
+
+```powershell
+npm run test:settings
+```
+
+The smoke test creates an authenticated disposable user, saves all editable preferences, reads
+them back through RLS, verifies that role/status cannot be changed, and removes the user.
+
 Changing a password calls Supabase global sign-out after the update. Existing access tokens on
 other devices can remain valid until JWT expiry; the session-security phase verifies the hosted
 JWT and session limits.

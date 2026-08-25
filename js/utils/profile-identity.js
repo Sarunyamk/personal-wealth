@@ -33,4 +33,7 @@ export function bindProfileIdentity(root, profile, user) {
   root.querySelectorAll("[data-profile-currency]").forEach((element) => {
     element.textContent = profile?.base_currency || "THB";
   });
+  root.querySelectorAll(".sidebar__profile-meta").forEach((element) => {
+    element.textContent = `${profile?.base_currency || "THB"} · Personal`;
+  });
 }
