@@ -3,6 +3,7 @@ import { createLocalStorageWealthRepository } from "./repositories/local-storage
 import { createSupabaseWealthRepository } from "./repositories/supabase-wealth-repository.js";
 import { createWealthService } from "./services/wealth-service.js";
 import { createOnboardingState } from "./state/onboarding.js";
+import { createAdminService } from "./services/admin-service.js";
 
 export function selectWealthRepository({ supabaseClient, allowLocalDemo = false, storage } = {}) {
   if (supabaseClient) return createSupabaseWealthRepository(supabaseClient);
@@ -19,5 +20,9 @@ export function createAppServices({ storage = window.localStorage } = {}) {
   return Object.freeze({
     wealth: createWealthService(wealthRepository),
     onboarding: createOnboardingState(storage),
+    admin:
+      globalThis.__CURRENT_PROFILE__?.role === "admin" && globalThis.__SUPABASE_CLIENT__
+        ? createAdminService(globalThis.__SUPABASE_CLIENT__)
+        : null,
   });
 }

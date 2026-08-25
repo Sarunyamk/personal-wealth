@@ -245,7 +245,7 @@ Exit criteria:
 - [x] เพิ่ม restrictive RLS gate เพื่อบล็อกบัญชี disabled ทันที
 - [x] เพิ่ม Edge Function สำหรับ list/disable/enable/delete user
 - [x] ป้องกัน admin ปิดหรือลบบัญชีตัวเองและ admin คนสุดท้าย
-- [ ] สร้าง Admin UI พร้อม loading/empty/error/confirmation states
+- [x] สร้าง Admin UI พร้อม loading/empty/error/confirmation states
 - [ ] deploy Edge Function และ promote admin คนแรก
 - [ ] ทดสอบ disable/enable/delete และ data cascade ด้วย 2 users
 - [ ] ตั้ง hosted Auth session time-box เป็น 7 วันและตรวจ refresh-token behavior

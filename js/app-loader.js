@@ -57,23 +57,44 @@ if (!client) {
         initialError: authErrorFromHash(window.location.hash),
       });
     } else {
-      globalThis.__ALLOW_LOCAL_DEMO__ = false;
-      globalThis.__SUPABASE_CLIENT__ = client;
-      auth.subscribe(({ event }) => {
-        if (shouldReturnToLogin(event)) window.location.reload();
-      });
-      const logout = document.querySelector("[data-auth-logout]");
-      logout.hidden = false;
-      logout.addEventListener("click", async () => {
-        logout.disabled = true;
-        try {
+      try {
+        const { data: profile, error: profileError } = await client
+          .from("profiles")
+          .select("*")
+          .eq("id", session.user.id)
+          .single();
+        if (profileError) throw profileError;
+        globalThis.__ALLOW_LOCAL_DEMO__ = false;
+        globalThis.__SUPABASE_CLIENT__ = client;
+        globalThis.__CURRENT_PROFILE__ = profile;
+        auth.subscribe(({ event }) => {
+          if (shouldReturnToLogin(event)) window.location.reload();
+        });
+        const logout = document.querySelector("[data-auth-logout]");
+        logout.hidden = false;
+        logout.addEventListener("click", async () => {
+          logout.disabled = true;
+          try {
+            await auth.signOut();
+            window.location.reload();
+          } catch {
+            logout.disabled = false;
+          }
+        });
+        await loadApplication();
+      } catch (error) {
+        console.error(error);
+        const page = document.querySelector("[data-page]");
+        page.innerHTML = `<section class="card empty-state" role="alert">
+          <h2>ตรวจสอบสิทธิ์บัญชีไม่สำเร็จ</h2>
+          <p>บัญชีอาจถูกปิดใช้งานหรือไม่สามารถเชื่อมต่อข้อมูลได้</p>
+          <button class="button" type="button" data-access-signout>ออกจากระบบ</button>
+        </section>`;
+        page.querySelector("[data-access-signout]").addEventListener("click", async () => {
           await auth.signOut();
           window.location.reload();
-        } catch {
-          logout.disabled = false;
-        }
-      });
-      await loadApplication();
+        });
+      }
     }
   }
 }

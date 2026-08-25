@@ -26,6 +26,7 @@ import {
 } from "./views/monthly-finance-view.js";
 import { renderAnnualReportError, renderAnnualReportLoading, renderAnnualReportView } from "./views/annual-report-view.js";
 import { renderGoalsView } from "./views/goals-view.js";
+import { renderAdminError, renderAdminLoading, renderAdminUsers } from "./views/admin-view.js";
 import { onboardingSubmitLabel, renderOnboardingStep } from "./views/onboarding-view.js";
 
 const page = document.querySelector("[data-page]");
@@ -45,7 +46,7 @@ const onboardingDialog = document.querySelector("[data-onboarding-dialog]");
 const quickAddDialog = document.querySelector("[data-quick-add-dialog]");
 const moreDialog = document.querySelector("[data-more-dialog]");
 const privacyState = createPrivacyState();
-const { wealth, onboarding: onboardingState } = createAppServices();
+const { wealth, onboarding: onboardingState, admin } = createAppServices();
 const viewState = {
   dashboard: { range: "6M" },
   assets: { query: "", category: "all" },
@@ -236,6 +237,17 @@ async function renderCurrentView() {
       page.innerHTML = renderGoalsView({ goals: await wealth.listGoals(), isPrivate: privacyState.value });
     } catch (error) {
       page.innerHTML = renderPageError(view.label);
+      console.error(error);
+    }
+  } else if (viewId === "settings" && admin) {
+    page.innerHTML = renderAdminLoading();
+    try {
+      page.innerHTML = renderAdminUsers({
+        users: await admin.listUsers(),
+        currentUserId: globalThis.__CURRENT_PROFILE__.id,
+      });
+    } catch (error) {
+      page.innerHTML = renderAdminError();
       console.error(error);
     }
   } else {
@@ -484,6 +496,34 @@ async function handleGoalAction(button) {
   }
 }
 
+async function handleAdminAction(button) {
+  if (!admin) return;
+  const action = button.dataset.adminAction;
+  const userId = button.dataset.userId;
+  const confirmed = await requestConfirmation({
+    title: action === "delete" ? "ลบบัญชีและข้อมูลทั้งหมด" : action === "disable" ? "ปิดใช้งานบัญชี" : "เปิดใช้งานบัญชี",
+    message:
+      action === "delete"
+        ? "บัญชีและข้อมูลการเงินทั้งหมดจะถูกลบถาวรและย้อนกลับไม่ได้"
+        : action === "disable"
+          ? "ผู้ใช้นี้จะเข้าสู่ระบบและเข้าถึงข้อมูลไม่ได้"
+          : "ผู้ใช้นี้จะกลับมาเข้าสู่ระบบและเข้าถึงข้อมูลได้",
+    confirmLabel: action === "delete" ? "ลบถาวร" : action === "disable" ? "ปิดใช้งาน" : "เปิดใช้งาน",
+  });
+  if (!confirmed) return;
+  button.disabled = true;
+  try {
+    if (action === "delete") await admin.deleteUser(userId);
+    if (action === "disable") await admin.disableUser(userId);
+    if (action === "enable") await admin.enableUser(userId);
+    await renderCurrentView();
+    showToast("อัปเดตบัญชีแล้ว");
+  } catch (error) {
+    button.disabled = false;
+    showToast(error.details?.[0] ?? "จัดการบัญชีไม่สำเร็จ");
+  }
+}
+
 function renderOnboarding() {
   const { step } = onboardingState.value;
   document.querySelector("[data-onboarding-body]").innerHTML = renderOnboardingStep(step);
@@ -555,6 +595,7 @@ function bindInteractions() {
     const goalOpen = event.target.closest("[data-goal-open]");
     const goalAction = event.target.closest("[data-goal-action]");
     const quickAdd = event.target.closest("[data-quick-add]");
+    const adminAction = event.target.closest("[data-admin-action]");
     if (retryButton) await renderCurrentView();
     if (event.target.closest("[data-page-retry]")) await renderCurrentView();
     if (event.target.closest("[data-report-retry]")) await renderCurrentView();
@@ -579,6 +620,8 @@ function bindInteractions() {
     if (reportExport) await exportAnnualReport();
     if (goalOpen) await openGoalEditor();
     if (goalAction) await handleGoalAction(goalAction);
+    if (adminAction) await handleAdminAction(adminAction);
+    if (event.target.closest("[data-admin-retry]")) await renderCurrentView();
     if (event.target.closest("[data-quick-add-open]")) quickAddDialog.showModal();
     if (quickAdd) {
       quickAddDialog.close();
