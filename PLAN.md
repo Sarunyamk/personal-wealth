@@ -35,6 +35,7 @@ database และ user account ไปช่วงท้าย หลังจ�
 ### Phase A - Supabase Stabilization
 
 - [x] financial data ใช้ Supabase repository ใน production และไม่ fallback ไป localStorage
+- [x] ทุก financial/admin mutation รอ Supabase สำเร็จแล้ว query/render ข้อมูลล่าสุดจาก DB ผ่าน flow กลาง
 - [x] schema, constraints, ownership defaults, profile trigger และ RLS อยู่ใน migrations
 - [x] Admin list ใช้ authenticated `admin_list_users` RPC
 - [x] รัน migrations ทั้งหมดบน Supabase project ปัจจุบัน
@@ -59,6 +60,7 @@ database และ user account ไปช่วงท้าย หลังจ�
 - [x] แสดง email, role และ account status แบบ read-only
 - [x] loading, validation, success และ error states พร้อม focused tests
 - [x] integration test ยืนยันการบันทึก/อ่านกลับ profile settings และป้องกัน user แก้ role/status
+- [x] หน้า Settings query profile ใหม่เมื่อเปิดหน้าและหลังบันทึก ไม่ใช้ค่า form หรือ bootstrap cache เป็นผลลัพธ์
 
 ### Phase D - Session and Security
 

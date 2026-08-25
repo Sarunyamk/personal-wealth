@@ -107,6 +107,10 @@ npm run test:settings
 The smoke test creates an authenticated disposable user, saves all editable preferences, reads
 them back through RLS, verifies that role/status cannot be changed, and removes the user.
 
+The UI treats Supabase as authoritative: Settings fetches the profile whenever the page opens and
+again after saving. Financial and admin mutations complete first, then the current view queries its
+repository again before showing success. Asset currency comes from the persisted profile setting.
+
 Changing a password calls Supabase global sign-out after the update. Existing access tokens on
 other devices can remain valid until JWT expiry; the session-security phase verifies the hosted
 JWT and session limits.

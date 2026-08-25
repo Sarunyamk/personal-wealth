@@ -13,11 +13,33 @@ test("profile settings are normalized and validated", () => {
 test("settings service updates current profile preference fields", async () => {
   const calls = [];
   const result = { id: "u1", display_name: "Mink", base_currency: "THB", theme: "fresh", privacy_default: true };
-  const query = { eq(column, value) { calls.push(["eq", column, value]); return this; }, select() { return this; }, async single() { return { data: result, error: null }; } };
-  const client = { from(table) { calls.push(["from", table]); return { update(values) { calls.push(["update", values]); return query; } }; }, auth: {} };
+  const updateQuery = {
+    eq(column, value) { calls.push(["update-eq", column, value]); return Promise.resolve({ data: null, error: null }); },
+  };
+  const selectQuery = {
+    eq(column, value) { calls.push(["select-eq", column, value]); return this; },
+    async single() { calls.push(["single"]); return { data: result, error: null }; },
+  };
+  const client = {
+    from(table) {
+      calls.push(["from", table]);
+      return {
+        update(values) { calls.push(["update", values]); return updateQuery; },
+        select(columns) { calls.push(["select", columns]); return selectQuery; },
+      };
+    },
+    auth: {},
+  };
   const profile = await createSettingsService(client).updateProfile("u1", { displayName: "Mink", baseCurrency: "THB", theme: "fresh", privacyDefault: true });
   assert.equal(profile, result);
-  assert.deepEqual(calls.at(-1), ["eq", "id", "u1"]);
+  assert.deepEqual(calls.slice(-4), [["from", "profiles"], ["select", "*"], ["select-eq", "id", "u1"], ["single"]]);
+});
+
+test("settings service reads the current profile directly from Supabase", async () => {
+  const result = { id: "u1", base_currency: "USD" };
+  const query = { eq() { return this; }, async single() { return { data: result, error: null }; } };
+  const client = { from() { return { select() { return query; } }; }, auth: {} };
+  assert.equal(await createSettingsService(client).getProfile("u1"), result);
 });
 
 test("password change revokes sessions globally", async () => {

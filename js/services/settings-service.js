@@ -22,12 +22,19 @@ export function validateProfileSettings(input) {
 
 export function createSettingsService(client) {
   if (!client?.from || !client?.auth) throw new TypeError("A Supabase client is required.");
+  async function getProfile(userId) {
+    const { data, error } = await client.from("profiles").select("*").eq("id", userId).single();
+    if (error) throw error;
+    return data;
+  }
+
   return Object.freeze({
+    getProfile,
     async updateProfile(userId, input) {
       const values = validateProfileSettings(input);
-      const { data, error } = await client.from("profiles").update(values).eq("id", userId).select().single();
+      const { error } = await client.from("profiles").update(values).eq("id", userId);
       if (error) throw error;
-      return data;
+      return getProfile(userId);
     },
     async changePasswordAndSignOut(password) {
       const value = String(password ?? "");

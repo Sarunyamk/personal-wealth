@@ -154,6 +154,13 @@ function updatePrivacyUi(isPrivate) {
   hydrateIcons(privacyButton);
 }
 
+function applyCurrentProfile(profile) {
+  globalThis.__CURRENT_PROFILE__ = profile;
+  document.documentElement.dataset.theme = profile.theme;
+  setDefaultCurrency(profile.base_currency);
+  bindProfileIdentity(document, profile, globalThis.__CURRENT_USER__);
+}
+
 function updateActiveNavigation(viewId) {
   document.querySelectorAll("[data-nav-view]").forEach((link) => {
     if (link.dataset.navView === viewId) link.setAttribute("aria-current", "page");
@@ -266,8 +273,10 @@ async function renderCurrentViewContent() {
   } else if (viewId === "settings" && settings) {
     page.innerHTML = renderSettingsLoading();
     try {
+      const profile = await settings.getProfile(globalThis.__CURRENT_PROFILE__.id);
+      applyCurrentProfile(profile);
       page.innerHTML = renderSettingsView({
-        profile: globalThis.__CURRENT_PROFILE__,
+        profile,
         email: globalThis.__CURRENT_USER__?.email ?? "",
       });
     } catch (error) {
@@ -301,6 +310,12 @@ async function renderCurrentView() {
   const release = beginGlobalLoading("กำลังโหลดหน้า");
   try { return await renderCurrentViewContent(); }
   finally { release(); }
+}
+
+async function persistAndRefresh(mutation) {
+  const result = await mutation();
+  await renderCurrentView();
+  return result;
 }
 
 function setFormError(form, message = "") {
@@ -338,11 +353,9 @@ async function submitProfileSettings(event) {
       displayName: data.get("displayName"), baseCurrency: data.get("baseCurrency"),
       theme: data.get("theme"), privacyDefault: data.get("privacyDefault") === "on",
     });
-    globalThis.__CURRENT_PROFILE__ = profile;
-    document.documentElement.dataset.theme = profile.theme;
-    setDefaultCurrency(profile.base_currency);
+    applyCurrentProfile(profile);
     privacyState.set(profile.privacy_default);
-    bindProfileIdentity(document, profile, globalThis.__CURRENT_USER__);
+    await renderCurrentView();
     showToast("บันทึกการตั้งค่าแล้ว");
   } catch (error) {
     setFormError(form, error.details?.[0] ?? error.message ?? "บันทึกไม่สำเร็จ");
@@ -477,9 +490,9 @@ async function deactivateRecord(entity, id) {
     confirmLabel: "ปิดใช้งาน",
   });
   if (!confirmed) return;
-  if (entity === "asset") await wealth.deactivateAsset(id);
-  else await wealth.deactivateLiability(id);
-  await renderCurrentView();
+  await persistAndRefresh(() =>
+    entity === "asset" ? wealth.deactivateAsset(id) : wealth.deactivateLiability(id),
+  );
   showToast("ปิดใช้งานรายการแล้ว");
 }
 
@@ -508,8 +521,7 @@ async function archiveTransaction(id) {
     confirmLabel: "เก็บเข้าคลัง",
   });
   if (!confirmed) return;
-  await wealth.deactivateTransaction(id);
-  await renderCurrentView();
+  await persistAndRefresh(() => wealth.deactivateTransaction(id));
   showToast("เก็บรายการเข้าคลังแล้ว");
 }
 
@@ -569,8 +581,7 @@ async function handleGoalAction(button) {
   if (goalAction === "complete") {
     const confirmed = await requestConfirmation({ title: "ทำ Goal ให้สำเร็จ", message: "ระบบจะปรับยอดปัจจุบันให้เท่ากับยอดเป้าหมาย", confirmLabel: "สำเร็จแล้ว" });
     if (confirmed) {
-      await wealth.completeGoal(id);
-      await renderCurrentView();
+      await persistAndRefresh(() => wealth.completeGoal(id));
       showToast("Goal สำเร็จแล้ว");
     }
   }
@@ -593,10 +604,11 @@ async function handleAdminAction(button) {
   if (!confirmed) return;
   button.disabled = true;
   try {
-    if (action === "delete") await admin.deleteUser(userId);
-    if (action === "disable") await admin.disableUser(userId);
-    if (action === "enable") await admin.enableUser(userId);
-    await renderCurrentView();
+    await persistAndRefresh(() => {
+      if (action === "delete") return admin.deleteUser(userId);
+      if (action === "disable") return admin.disableUser(userId);
+      return admin.enableUser(userId);
+    });
     showToast("อัปเดตบัญชีแล้ว");
   } catch (error) {
     button.disabled = false;
@@ -631,7 +643,7 @@ async function submitOnboardingForm(event) {
   try {
     if (step === "asset") {
       await wealth.createAsset({
-        ...data, currency: "THB",
+        ...data, currency: globalThis.__CURRENT_PROFILE__.base_currency,
         liquidityLevel: ["cash", "bank-account"].includes(data.category) ? "high" : "low",
       });
     }
@@ -795,10 +807,10 @@ async function submitGoalForm(event) {
   delete input.id;
   try {
     const id = data.get("id");
-    if (id) await wealth.updateGoal(id, input);
-    else await wealth.createGoal(input);
+    await persistAndRefresh(() =>
+      id ? wealth.updateGoal(id, input) : wealth.createGoal(input),
+    );
     goalDialog.close();
-    await renderCurrentView();
     showToast(id ? "บันทึก Goal แล้ว" : "เพิ่ม Goal แล้ว");
   } catch (error) {
     setFormError(form, error.details?.[0] ?? "กรุณาตรวจสอบข้อมูล");
@@ -812,11 +824,10 @@ async function submitContributionForm(event) {
   setSubmitting(form, true);
   const data = new FormData(form);
   try {
-    await wealth.contributeToGoal(data.get("goalId"), {
+    await persistAndRefresh(() => wealth.contributeToGoal(data.get("goalId"), {
       amount: data.get("amount"), contributionDate: data.get("contributionDate"), note: data.get("note"),
-    });
+    }));
     contributionDialog.close();
-    await renderCurrentView();
     showToast("เพิ่มเงินให้ Goal แล้ว");
   } catch (error) {
     setFormError(form, error.details?.[0] ?? "กรุณาตรวจสอบข้อมูล");
@@ -842,8 +853,7 @@ async function archiveRecurring(id) {
     confirmLabel: "ปิดใช้งาน",
   });
   if (!confirmed) return;
-  await wealth.deactivateRecurringTransaction(id);
-  await renderCurrentView();
+  await persistAndRefresh(() => wealth.deactivateRecurringTransaction(id));
   showToast("ปิดรายการประจำแล้ว");
 }
 
@@ -871,12 +881,11 @@ async function submitReconciliationForm(event) {
   setSubmitting(form, true);
   const data = new FormData(form);
   try {
-    await wealth.setMonthReconciliation(viewState.transactions.month, {
+    await persistAndRefresh(() => wealth.setMonthReconciliation(viewState.transactions.month, {
       assetId: data.get("assetId"),
       closingCash: data.get("closingCash"),
-    });
+    }));
     reconciliationDialog.close();
-    await renderCurrentView();
     showToast("บันทึกผลตรวจยอดแล้ว");
   } catch (error) {
     setFormError(form, error.details?.[0] ?? "กรุณาตรวจสอบข้อมูล");
@@ -892,9 +901,11 @@ async function changeMonthStatus(status) {
     confirmLabel: status === "closed" ? "ปิดเดือน" : "เปิดเดือน",
   });
   if (!confirmed) return;
-  if (status === "closed") await wealth.closeMonth(viewState.transactions.month);
-  else await wealth.reopenMonth(viewState.transactions.month);
-  await renderCurrentView();
+  await persistAndRefresh(() =>
+    status === "closed"
+      ? wealth.closeMonth(viewState.transactions.month)
+      : wealth.reopenMonth(viewState.transactions.month),
+  );
   showToast(status === "closed" ? "ปิดเดือนแล้ว" : "เปิดเดือนแล้ว");
 }
 
@@ -905,9 +916,8 @@ async function submitRecurringForm(event) {
   setSubmitting(form, true);
   const data = new FormData(form);
   try {
-    await wealth.createRecurringTransaction(Object.fromEntries(data.entries()));
+    await persistAndRefresh(() => wealth.createRecurringTransaction(Object.fromEntries(data.entries())));
     recurringDialog.close();
-    await renderCurrentView();
     showToast("เพิ่มรายการประจำแล้ว");
   } catch (error) {
     setFormError(form, error.details?.[0] ?? "กรุณาตรวจสอบข้อมูล");
@@ -923,14 +933,13 @@ async function submitBudgetForm(event) {
   setSubmitting(form, true);
   const data = new FormData(form);
   try {
-    await wealth.upsertBudget({
+    await persistAndRefresh(() => wealth.upsertBudget({
       month: data.get("month"),
       type: data.get("type"),
       category: data.get("category"),
       plannedAmount: data.get("plannedAmount"),
-    });
+    }));
     budgetDialog.close();
-    await renderCurrentView();
     showToast("บันทึกแผนแล้ว");
   } catch (error) {
     setFormError(form, error.details?.[0] ?? "กรุณาตรวจสอบข้อมูล");
@@ -946,17 +955,16 @@ async function submitTransactionForm(event) {
   setSubmitting(form, true);
   const data = new FormData(form);
   try {
-    await wealth.createTransaction({
+    viewState.transactions.month = String(data.get("transactionDate")).slice(0, 7);
+    await persistAndRefresh(() => wealth.createTransaction({
       type: data.get("type"),
       name: data.get("name"),
       category: data.get("category"),
       amount: data.get("amount"),
       transactionDate: data.get("transactionDate"),
       note: data.get("note"),
-    });
-    viewState.transactions.month = String(data.get("transactionDate")).slice(0, 7);
+    }));
     transactionDialog.close();
-    await renderCurrentView();
     showToast("เพิ่มรายการแล้ว");
   } catch (error) {
     setFormError(form, error.details?.[0] ?? "กรุณาตรวจสอบข้อมูล");
@@ -976,16 +984,16 @@ async function submitAssetForm(event) {
     category: data.get("category"),
     currentValue: data.get("value"),
     institution: data.get("institution"),
-    currency: "THB",
+    currency: globalThis.__CURRENT_PROFILE__.base_currency,
     liquidityLevel: data.get("liquidity"),
   };
   try {
     const id = data.get("id");
     if (id) delete input.currentValue;
-    if (id) await wealth.updateAsset(id, input);
-    else await wealth.createAsset(input);
+    await persistAndRefresh(() =>
+      id ? wealth.updateAsset(id, input) : wealth.createAsset(input),
+    );
     assetDialog.close();
-    await renderCurrentView();
     showToast(id ? "บันทึกการแก้ไขแล้ว" : "เพิ่ม Asset แล้ว");
   } catch (error) {
     setFormError(form, error.details?.[0] ?? "กรุณาตรวจสอบข้อมูล");
@@ -1013,10 +1021,10 @@ async function submitLiabilityForm(event) {
   try {
     const id = data.get("id");
     if (id) delete input.currentBalance;
-    if (id) await wealth.updateLiability(id, input);
-    else await wealth.createLiability(input);
+    await persistAndRefresh(() =>
+      id ? wealth.updateLiability(id, input) : wealth.createLiability(input),
+    );
     liabilityDialog.close();
-    await renderCurrentView();
     showToast(id ? "บันทึกการแก้ไขแล้ว" : "เพิ่ม Liability แล้ว");
   } catch (error) {
     setFormError(form, error.details?.[0] ?? "กรุณาตรวจสอบข้อมูล");
@@ -1032,13 +1040,12 @@ async function submitQuickForm(event) {
   setSubmitting(form, true);
   const data = new FormData(form);
   try {
-    if (data.get("entityType") === "asset") {
-      await wealth.updateAssetValue(data.get("id"), data.get("value"));
-    } else {
-      await wealth.updateLiabilityBalance(data.get("id"), data.get("value"));
-    }
+    await persistAndRefresh(() =>
+      data.get("entityType") === "asset"
+        ? wealth.updateAssetValue(data.get("id"), data.get("value"))
+        : wealth.updateLiabilityBalance(data.get("id"), data.get("value")),
+    );
     quickDialog.close();
-    await renderCurrentView();
     showToast("อัปเดตยอดแล้ว");
   } catch (error) {
     setFormError(form, error.details?.[0] ?? "กรุณาตรวจสอบข้อมูล");
