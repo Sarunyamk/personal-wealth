@@ -32,13 +32,17 @@ Deno.serve(async (request) => {
     const { data: authData, error: authError } = await userClient.auth.getUser();
     if (authError || !authData.user) return response({ error: "Unauthorized" }, 401);
     const actorId = authData.user.id;
-    const { data: actor } = await adminClient
+    const { data: actor, error: actorError } = await userClient
       .from("profiles")
       .select("role,status")
       .eq("id", actorId)
       .single();
+    if (actorError) {
+      console.error("Unable to read the caller profile", actorError);
+      return response({ error: "Unable to verify the current profile" }, 403);
+    }
     if (actor?.role !== "admin" || actor.status !== "active") {
-      return response({ error: "Forbidden" }, 403);
+      return response({ error: `Admin access requires an active admin profile (current: ${actor?.role ?? "missing"}/${actor?.status ?? "missing"})` }, 403);
     }
 
     const body = request.method === "GET" ? { action: "list" } : await request.json();

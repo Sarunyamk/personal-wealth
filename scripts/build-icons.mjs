@@ -3,7 +3,6 @@ import { dirname, resolve } from "node:path";
 import * as lucide from "lucide";
 
 const iconNames = [
-  "Bell",
   "Archive",
   "Building2",
   "ChartNoAxesCombined",
