@@ -401,7 +401,7 @@ async function openEditor(entity, id = null) {
       field(form, "institution").value = asset.institution ?? "";
       field(form, "liquidity").value = asset.liquidityLevel;
     }
-    field(form, "value").readOnly = Boolean(id);
+    field(form, "value").disabled = Boolean(id);
     assetDialog.showModal();
     return;
   }
@@ -426,7 +426,7 @@ async function openEditor(entity, id = null) {
       field(form, name).value = liability[name] ?? "";
     }
   }
-  field(form, "currentBalance").readOnly = Boolean(id);
+  field(form, "currentBalance").disabled = Boolean(id);
   liabilityDialog.showModal();
 }
 

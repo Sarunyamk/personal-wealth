@@ -139,6 +139,21 @@ async function verifyViewport(browser, baseUrl, viewport) {
     assert.equal(await quickAddButton.evaluate((element) => element === document.activeElement), true);
   }
 
+  await page.goto(`${baseUrl}#assets`, { waitUntil: "networkidle" });
+  await page.locator('[data-record-action="edit"][data-entity="asset"]').first().click();
+  const lockedValue = page.locator('[data-asset-dialog][open] [name="value"]');
+  await lockedValue.waitFor();
+  assert.equal(await lockedValue.isDisabled(), true);
+  await lockedValue.evaluate((element) => element.focus());
+  assert.equal(await lockedValue.evaluate((element) => element === document.activeElement), false);
+  const lockedStyle = await lockedValue.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { borderColor: style.borderColor, opacity: style.opacity };
+  });
+  assert.equal(lockedStyle.borderColor, "rgba(0, 0, 0, 0)");
+  assert.equal(lockedStyle.opacity, "0.65");
+  await page.keyboard.press("Escape");
+
   assert.deepEqual(errors, []);
   await context.close();
 }
