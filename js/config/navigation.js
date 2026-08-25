@@ -9,12 +9,17 @@ export const NAVIGATION = Object.freeze([
 ]);
 
 export const PRIMARY_MOBILE_VIEWS = Object.freeze(["dashboard", "assets", "goals"]);
+export const ADMIN_NAVIGATION = Object.freeze({
+  id: "admin",
+  label: "Admin",
+  icon: "users",
+});
 
-export function getNavigationItem(viewId) {
-  return NAVIGATION.find((item) => item.id === viewId) ?? NAVIGATION[0];
+export function getNavigationItem(viewId, navigation = NAVIGATION) {
+  return navigation.find((item) => item.id === viewId) ?? navigation[0];
 }
 
-export function getViewIdFromHash(hash) {
+export function getViewIdFromHash(hash, navigation = NAVIGATION) {
   const requestedView = hash.replace(/^#\/?/, "");
-  return NAVIGATION.some((item) => item.id === requestedView) ? requestedView : "dashboard";
+  return navigation.some((item) => item.id === requestedView) ? requestedView : "dashboard";
 }

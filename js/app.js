@@ -5,6 +5,7 @@ import { hydrateIcons } from "./components/icons.js";
 import { showToast } from "./components/toast.js";
 import {
   NAVIGATION,
+  ADMIN_NAVIGATION,
   PRIMARY_MOBILE_VIEWS,
   getNavigationItem,
   getViewIdFromHash,
@@ -47,6 +48,7 @@ const quickAddDialog = document.querySelector("[data-quick-add-dialog]");
 const moreDialog = document.querySelector("[data-more-dialog]");
 const privacyState = createPrivacyState();
 const { wealth, onboarding: onboardingState, admin } = createAppServices();
+const navigation = admin ? Object.freeze([...NAVIGATION, ADMIN_NAVIGATION]) : NAVIGATION;
 const viewState = {
   dashboard: { range: "6M" },
   assets: { query: "", category: "all" },
@@ -65,14 +67,14 @@ function renderNavigation() {
   const mobileNav = document.querySelector("[data-mobile-nav]");
   const moreMenu = document.querySelector("[data-more-menu]");
 
-  desktopNav.innerHTML = NAVIGATION.map(
+  desktopNav.innerHTML = navigation.map(
     ({ id, label, icon }) => `
       <a class="sidebar-nav__item" href="#${id}" data-nav-view="${id}">
         ${iconPlaceholder(icon)}<span>${label}</span>
       </a>`,
   ).join("");
 
-  const primaryItems = NAVIGATION.filter(({ id }) => PRIMARY_MOBILE_VIEWS.includes(id));
+  const primaryItems = navigation.filter(({ id }) => PRIMARY_MOBILE_VIEWS.includes(id));
   mobileNav.innerHTML = `${primaryItems
     .map(
       ({ id, shortLabel, icon }) => `
@@ -85,7 +87,7 @@ function renderNavigation() {
       ${iconPlaceholder("menu")}<span>More</span>
     </button>`;
 
-  moreMenu.innerHTML = NAVIGATION.filter(({ id }) => !PRIMARY_MOBILE_VIEWS.includes(id))
+  moreMenu.innerHTML = navigation.filter(({ id }) => !PRIMARY_MOBILE_VIEWS.includes(id))
     .map(
       ({ id, label, icon }) => `
         <a class="more-menu__item" href="#${id}" data-more-link>
@@ -94,6 +96,10 @@ function renderNavigation() {
         </a>`,
     )
     .join("");
+}
+
+function currentViewId() {
+  return getViewIdFromHash(window.location.hash, navigation);
 }
 
 function amountMarkup(value, label) {
@@ -166,8 +172,8 @@ function animateCountUps(root, isPrivate) {
 }
 
 async function renderCurrentView() {
-  const viewId = getViewIdFromHash(window.location.hash);
-  const view = getNavigationItem(viewId);
+  const viewId = currentViewId();
+  const view = getNavigationItem(viewId, navigation);
   let dashboardData;
   let annualReportData;
   unmountDashboardCharts();
@@ -239,7 +245,7 @@ async function renderCurrentView() {
       page.innerHTML = renderPageError(view.label);
       console.error(error);
     }
-  } else if (viewId === "settings" && admin) {
+  } else if (viewId === "admin" && admin) {
     page.innerHTML = renderAdminLoading();
     try {
       page.innerHTML = renderAdminUsers({
@@ -573,7 +579,7 @@ function bindInteractions() {
   privacyButton.addEventListener("click", () => privacyState.toggle());
   privacyState.subscribe(async (isPrivate) => {
     updatePrivacyUi(isPrivate);
-    if (["dashboard", "reports"].includes(getViewIdFromHash(window.location.hash))) {
+    if (["dashboard", "reports"].includes(currentViewId())) {
       await renderCurrentView();
     }
   });
@@ -654,7 +660,7 @@ function bindInteractions() {
 
   page.addEventListener("input", (event) => {
     if (!event.target.matches("[data-record-search]")) return;
-    const viewId = getViewIdFromHash(window.location.hash);
+    const viewId = currentViewId();
     viewState[viewId].query = event.target.value;
     window.clearTimeout(searchRenderTimer);
     searchRenderTimer = window.setTimeout(async () => {
@@ -676,7 +682,7 @@ function bindInteractions() {
       return;
     }
     if (!event.target.matches("[data-record-filter]")) return;
-    const viewId = getViewIdFromHash(window.location.hash);
+    const viewId = currentViewId();
     viewState[viewId].category = event.target.value;
     renderCurrentView();
   });
