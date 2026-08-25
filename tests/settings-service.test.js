@@ -14,7 +14,9 @@ test("settings service updates current profile preference fields", async () => {
   const calls = [];
   const result = { id: "u1", display_name: "Mink", base_currency: "THB", theme: "fresh", privacy_default: true };
   const updateQuery = {
-    eq(column, value) { calls.push(["update-eq", column, value]); return Promise.resolve({ data: null, error: null }); },
+    eq(column, value) { calls.push(["update-eq", column, value]); return this; },
+    select(columns) { calls.push(["update-select", columns]); return this; },
+    async single() { calls.push(["update-single"]); return { data: result, error: null }; },
   };
   const selectQuery = {
     eq(column, value) { calls.push(["select-eq", column, value]); return this; },
@@ -32,7 +34,7 @@ test("settings service updates current profile preference fields", async () => {
   };
   const profile = await createSettingsService(client).updateProfile("u1", { displayName: "Mink", baseCurrency: "THB", theme: "fresh", privacyDefault: true });
   assert.equal(profile, result);
-  assert.deepEqual(calls.slice(-4), [["from", "profiles"], ["select", "*"], ["select-eq", "id", "u1"], ["single"]]);
+  assert.deepEqual(calls.slice(-3), [["update-eq", "id", "u1"], ["update-select", "*"], ["update-single"]]);
 });
 
 test("settings service reads the current profile directly from Supabase", async () => {

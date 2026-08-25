@@ -110,6 +110,8 @@ them back through RLS, verifies that role/status cannot be changed, and removes 
 The UI treats Supabase as authoritative: Settings fetches the profile whenever the page opens and
 again after saving. Financial and admin mutations complete first, then the current view queries its
 repository again before showing success. Asset currency comes from the persisted profile setting.
+Browser Supabase requests time out after 15 seconds so failed networks release the blocking loader
+and expose a retryable error instead of waiting for the browser's multi-minute network timeout.
 
 Changing a password calls Supabase global sign-out after the update. Existing access tokens on
 other devices can remain valid until JWT expiry; the session-security phase verifies the hosted

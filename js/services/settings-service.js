@@ -32,9 +32,9 @@ export function createSettingsService(client) {
     getProfile,
     async updateProfile(userId, input) {
       const values = validateProfileSettings(input);
-      const { error } = await client.from("profiles").update(values).eq("id", userId);
+      const { data, error } = await client.from("profiles").update(values).eq("id", userId).select("*").single();
       if (error) throw error;
-      return getProfile(userId);
+      return data;
     },
     async changePasswordAndSignOut(password) {
       const value = String(password ?? "");

@@ -61,6 +61,7 @@ database และ user account ไปช่วงท้าย หลังจ�
 - [x] loading, validation, success และ error states พร้อม focused tests
 - [x] integration test ยืนยันการบันทึก/อ่านกลับ profile settings และป้องกัน user แก้ role/status
 - [x] หน้า Settings query profile ใหม่เมื่อเปิดหน้าและหลังบันทึก ไม่ใช้ค่า form หรือ bootstrap cache เป็นผลลัพธ์
+- [x] Supabase request มี timeout 15 วินาที ป้องกัน global loading ค้างตาม browser network timeout
 
 ### Phase D - Session and Security
 

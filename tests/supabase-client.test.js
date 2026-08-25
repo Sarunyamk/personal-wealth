@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  createTimedFetch,
   createSupabaseBrowserClient,
   getSupabaseConfig,
 } from "../js/data/supabase-client.js";
@@ -41,4 +42,15 @@ test("Supabase client uses only the URL and publishable key", () => {
   assert.equal(calls[0][0], "https://example.supabase.co");
   assert.equal(calls[0][1], "publishable-key");
   assert.equal(calls[0][2].auth.persistSession, true);
+  assert.equal(typeof calls[0][2].global.fetch, "function");
+});
+
+test("Supabase fetch fails within the configured timeout", async () => {
+  const hangingFetch = (_input, init) => new Promise((_resolve, reject) => {
+    init.signal.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")), { once: true });
+  });
+  await assert.rejects(
+    createTimedFetch(hangingFetch, 5)("https://example.supabase.co"),
+    /ใช้เวลานานเกินไป/,
+  );
 });
