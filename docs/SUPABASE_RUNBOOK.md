@@ -87,7 +87,17 @@ Profile status blocks database access immediately through restrictive RLS. The E
 bans the Auth account. Administrative lifecycle changes should use the Admin UI rather than manual
 profile edits so both layers remain synchronized.
 
-## 6. Hosted session settings
+## 6. Profile preferences
+
+Migration `202608250004_profile_preferences.sql` adds `privacy_default` and grants authenticated
+users column-level update access only to `display_name`, `base_currency`, `theme`, and
+`privacy_default`. Role, status, and disabled state remain admin-controlled.
+
+Changing a password calls Supabase global sign-out after the update. Existing access tokens on
+other devices can remain valid until JWT expiry; the session-security phase verifies the hosted
+JWT and session limits.
+
+## 7. Hosted session settings
 
 In Supabase Authentication settings:
 

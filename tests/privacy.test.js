@@ -31,3 +31,8 @@ test("amount presentation masks the entire formatted value", () => {
   assert.equal(presentAmount("฿2,842,500", false), "฿2,842,500");
   assert.equal(presentAmount("฿2,842,500", true), MASKED_AMOUNT);
 });
+
+test("privacy state uses profile default only without a device preference", () => {
+  assert.equal(createPrivacyState(createMemoryStorage(), true).value, true);
+  assert.equal(createPrivacyState(createMemoryStorage("false"), true).value, false);
+});

@@ -21,6 +21,8 @@ import "./onboarding.test.js";
 import "./onboarding-view.test.js";
 import "./privacy.test.js";
 import "./profile-identity.test.js";
+import "./settings-service.test.js";
+import "./settings-view.test.js";
 import "./repositories.test.js";
 import "./records-view.test.js";
 import "./supabase-schema.test.js";

@@ -1,0 +1,15 @@
+.settings-layout { display: grid; gap: var(--space-4); max-width: 48rem; }
+.settings-section { display: grid; gap: var(--space-5); padding: var(--space-5); }
+.settings-section h3, .settings-section p { margin: 0; }
+.settings-section > div > p { color: var(--color-text-muted); }
+.settings-form { display: grid; gap: var(--space-4); }
+.settings-toggle { display: flex; align-items: flex-start; gap: var(--space-3); }
+.settings-toggle input { width: 1.25rem; height: 1.25rem; margin-top: 0.15rem; accent-color: var(--color-primary); }
+.settings-toggle span { display: grid; }
+.settings-toggle small { color: var(--color-text-muted); }
+.settings-facts { display: grid; margin: 0; }
+.settings-facts div { display: grid; grid-template-columns: minmax(7rem, 0.35fr) 1fr; gap: var(--space-3); padding-block: var(--space-3); border-top: 1px solid var(--color-border); }
+.settings-facts dt { color: var(--color-text-muted); }
+.settings-facts dd { min-width: 0; margin: 0; overflow-wrap: anywhere; font-weight: 700; }
+.settings-skeleton { min-height: 18rem; }
+@media (max-width: 30rem) { .settings-section { padding: var(--space-4); } .settings-facts div { grid-template-columns: 1fr; gap: var(--space-1); } }

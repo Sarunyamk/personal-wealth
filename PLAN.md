@@ -53,11 +53,11 @@ database และ user account ไปช่วงท้าย หลังจ�
 
 ### Phase C - User Settings
 
-- [ ] แก้ display name และ base currency
-- [ ] เลือก theme และ privacy default ผ่าน design tokens
-- [ ] เปลี่ยนรหัสผ่านและ logout ทุกอุปกรณ์
-- [ ] แสดง email, role และ account status แบบ read-only
-- [ ] loading, validation, success และ error states พร้อม focused tests
+- [x] แก้ display name และ base currency
+- [x] เลือก theme และ privacy default ผ่าน design tokens
+- [x] เปลี่ยนรหัสผ่านและ logout ทุกอุปกรณ์
+- [x] แสดง email, role และ account status แบบ read-only
+- [x] loading, validation, success และ error states พร้อม focused tests
 
 ### Phase D - Session and Security
 

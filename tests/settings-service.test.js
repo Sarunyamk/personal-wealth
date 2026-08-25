@@ -1,0 +1,31 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { ERROR_CODES } from "../js/errors/app-error.js";
+import { createSettingsService, validateProfileSettings } from "../js/services/settings-service.js";
+
+test("profile settings are normalized and validated", () => {
+  assert.deepEqual(validateProfileSettings({ displayName: "  Mink ", baseCurrency: "thb", theme: "fresh", privacyDefault: true }), {
+    display_name: "Mink", base_currency: "THB", theme: "fresh", privacy_default: true,
+  });
+  assert.throws(() => validateProfileSettings({ displayName: "", baseCurrency: "BTC", theme: "dark" }), { code: ERROR_CODES.VALIDATION });
+});
+
+test("settings service updates current profile preference fields", async () => {
+  const calls = [];
+  const result = { id: "u1", display_name: "Mink", base_currency: "THB", theme: "fresh", privacy_default: true };
+  const query = { eq(column, value) { calls.push(["eq", column, value]); return this; }, select() { return this; }, async single() { return { data: result, error: null }; } };
+  const client = { from(table) { calls.push(["from", table]); return { update(values) { calls.push(["update", values]); return query; } }; }, auth: {} };
+  const profile = await createSettingsService(client).updateProfile("u1", { displayName: "Mink", baseCurrency: "THB", theme: "fresh", privacyDefault: true });
+  assert.equal(profile, result);
+  assert.deepEqual(calls.at(-1), ["eq", "id", "u1"]);
+});
+
+test("password change revokes sessions globally", async () => {
+  const calls = [];
+  const client = { from() {}, auth: {
+    async updateUser(input) { calls.push(["update", input]); return { error: null }; },
+    async signOut(input) { calls.push(["signOut", input]); return { error: null }; },
+  } };
+  await createSettingsService(client).changePasswordAndSignOut("new-password");
+  assert.deepEqual(calls, [["update", { password: "new-password" }], ["signOut", { scope: "global" }]]);
+});

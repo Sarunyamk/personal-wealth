@@ -5,6 +5,7 @@ import {
   formatCurrency,
   formatDate,
   formatPercent,
+  setDefaultCurrency,
 } from "../js/utils/formatters.js";
 
 test("currency formatters preserve exact and compact meanings", () => {
@@ -13,6 +14,12 @@ test("currency formatters preserve exact and compact meanings", () => {
   assert.equal(exact, "฿2,842,500");
   assert.equal(compact, "฿2.84M");
   assert.equal(formatCurrency(Number.NaN), "-");
+});
+
+test("profile base currency configures the shared formatter", () => {
+  setDefaultCurrency("USD");
+  assert.match(formatCurrency(100, { locale: "en-US" }), /\$100/);
+  setDefaultCurrency("THB");
 });
 
 test("percent values are accepted in human percentage units", () => {

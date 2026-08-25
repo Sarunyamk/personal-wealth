@@ -12,8 +12,9 @@ import {
 } from "./config/navigation.js";
 import { TREND_RANGES, filterSnapshotsByRange } from "./domain/dashboard.js";
 import { createPrivacyState, presentAmount } from "./state/privacy.js";
-import { formatCurrency, formatDate } from "./utils/formatters.js";
+import { formatCurrency, formatDate, setDefaultCurrency } from "./utils/formatters.js";
 import { escapeHtml } from "./utils/html.js";
+import { bindProfileIdentity } from "./utils/profile-identity.js";
 import {
   renderDashboardError,
   renderDashboardLoading,
@@ -28,6 +29,7 @@ import {
 import { renderAnnualReportError, renderAnnualReportLoading, renderAnnualReportView } from "./views/annual-report-view.js";
 import { renderGoalsView } from "./views/goals-view.js";
 import { renderAdminError, renderAdminLoading, renderAdminUsers } from "./views/admin-view.js";
+import { renderSettingsError, renderSettingsLoading, renderSettingsView } from "./views/settings-view.js";
 import { onboardingSubmitLabel, renderOnboardingStep } from "./views/onboarding-view.js";
 
 const page = document.querySelector("[data-page]");
@@ -46,8 +48,8 @@ const contributionDialog = document.querySelector("[data-contribution-dialog]");
 const onboardingDialog = document.querySelector("[data-onboarding-dialog]");
 const quickAddDialog = document.querySelector("[data-quick-add-dialog]");
 const moreDialog = document.querySelector("[data-more-dialog]");
-const privacyState = createPrivacyState();
-const { wealth, onboarding: onboardingState, admin } = createAppServices();
+const privacyState = createPrivacyState(undefined, globalThis.__CURRENT_PROFILE__?.privacy_default);
+const { wealth, onboarding: onboardingState, admin, settings } = createAppServices();
 const navigation = admin ? Object.freeze([...NAVIGATION, ADMIN_NAVIGATION]) : NAVIGATION;
 const viewState = {
   dashboard: { range: "6M" },
@@ -256,6 +258,17 @@ async function renderCurrentView() {
       page.innerHTML = renderAdminError(error);
       console.error(error);
     }
+  } else if (viewId === "settings" && settings) {
+    page.innerHTML = renderSettingsLoading();
+    try {
+      page.innerHTML = renderSettingsView({
+        profile: globalThis.__CURRENT_PROFILE__,
+        email: globalThis.__CURRENT_USER__?.email ?? "",
+      });
+    } catch (error) {
+      page.innerHTML = renderSettingsError(error);
+      console.error(error);
+    }
   } else {
     renderPlaceholder(view);
   }
@@ -294,6 +307,50 @@ function setSubmitting(form, isSubmitting) {
   if (isSubmitting) form.dataset.submitting = "true";
   else delete form.dataset.submitting;
   form.querySelector("[type='submit']").disabled = isSubmitting;
+}
+
+async function submitProfileSettings(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  if (form.dataset.submitting) return;
+  setSubmitting(form, true);
+  setFormError(form);
+  const data = new FormData(form);
+  try {
+    const profile = await settings.updateProfile(globalThis.__CURRENT_PROFILE__.id, {
+      displayName: data.get("displayName"), baseCurrency: data.get("baseCurrency"),
+      theme: data.get("theme"), privacyDefault: data.get("privacyDefault") === "on",
+    });
+    globalThis.__CURRENT_PROFILE__ = profile;
+    document.documentElement.dataset.theme = profile.theme;
+    setDefaultCurrency(profile.base_currency);
+    privacyState.set(profile.privacy_default);
+    bindProfileIdentity(document, profile, globalThis.__CURRENT_USER__);
+    showToast("บันทึกการตั้งค่าแล้ว");
+  } catch (error) {
+    setFormError(form, error.details?.[0] ?? error.message ?? "บันทึกไม่สำเร็จ");
+  } finally { setSubmitting(form, false); }
+}
+
+async function submitPasswordSettings(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  if (form.dataset.submitting) return;
+  setFormError(form);
+  const data = new FormData(form);
+  if (data.get("password") !== data.get("confirmation")) {
+    setFormError(form, "รหัสผ่านทั้งสองช่องไม่ตรงกัน");
+    return;
+  }
+  setSubmitting(form, true);
+  try {
+    await settings.changePasswordAndSignOut(data.get("password"));
+    window.sessionStorage.setItem("personal-wealth:access-notice", "เปลี่ยนรหัสผ่านแล้ว กรุณาเข้าสู่ระบบอีกครั้ง");
+    window.location.reload();
+  } catch (error) {
+    setFormError(form, error.details?.[0] ?? error.message ?? "เปลี่ยนรหัสผ่านไม่สำเร็จ");
+    setSubmitting(form, false);
+  }
 }
 
 async function openEditor(entity, id = null) {
@@ -584,6 +641,10 @@ function bindInteractions() {
     }
   });
   window.addEventListener("hashchange", () => renderCurrentView());
+  page.addEventListener("submit", (event) => {
+    if (event.target.matches("[data-profile-settings-form]")) submitProfileSettings(event);
+    if (event.target.matches("[data-password-settings-form]")) submitPasswordSettings(event);
+  });
 
   document.addEventListener("click", async (event) => {
     const rangeButton = event.target.closest("[data-trend-range]");

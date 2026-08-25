@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { profileDisplayName, profileInitials } from "../js/utils/profile-identity.js";
+import { bindProfileIdentity, profileDisplayName, profileInitials } from "../js/utils/profile-identity.js";
 
 test("profile identity uses the trimmed Supabase display name", () => {
   assert.equal(profileDisplayName({ display_name: "  Mnk  " }, { email: "fallback@example.com" }), "Mnk");
@@ -11,4 +11,16 @@ test("profile identity uses the trimmed Supabase display name", () => {
 test("profile identity falls back to the email name", () => {
   assert.equal(profileDisplayName({}, { email: "sarunya46mk@gmail.com" }), "sarunya46mk");
   assert.equal(profileDisplayName({}, {}), "ผู้ใช้");
+});
+
+test("profile identity binds base currency labels", () => {
+  const element = { textContent: "" };
+  const root = {
+    querySelectorAll(selector) {
+      if (selector === "[data-profile-currency]") return [element];
+      return [];
+    },
+  };
+  bindProfileIdentity(root, { base_currency: "USD" }, {});
+  assert.equal(element.textContent, "USD");
 });

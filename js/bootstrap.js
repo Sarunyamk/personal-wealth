@@ -4,6 +4,7 @@ import { createSupabaseWealthRepository } from "./repositories/supabase-wealth-r
 import { createWealthService } from "./services/wealth-service.js";
 import { createOnboardingState } from "./state/onboarding.js";
 import { createAdminService } from "./services/admin-service.js";
+import { createSettingsService } from "./services/settings-service.js";
 
 export function selectWealthRepository({ supabaseClient, allowLocalDemo = false, storage } = {}) {
   if (supabaseClient) return createSupabaseWealthRepository(supabaseClient);
@@ -24,5 +25,8 @@ export function createAppServices({ storage = window.localStorage } = {}) {
       globalThis.__CURRENT_PROFILE__?.role === "admin" && globalThis.__SUPABASE_CLIENT__
         ? createAdminService(globalThis.__SUPABASE_CLIENT__)
         : null,
+    settings: globalThis.__SUPABASE_CLIENT__
+      ? createSettingsService(globalThis.__SUPABASE_CLIENT__)
+      : null,
   });
 }

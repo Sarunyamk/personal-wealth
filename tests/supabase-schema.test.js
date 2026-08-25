@@ -120,3 +120,10 @@ test("new and existing financial records receive an initial value history", () =
   assert.match(migration, /after insert on public\.assets/i);
   assert.match(migration, /after insert on public\.liabilities/i);
 });
+
+test("profile preferences are owner-editable without exposing admin fields", () => {
+  const preferences = readFileSync("supabase/migrations/202608250004_profile_preferences.sql", "utf8");
+  assert.match(preferences, /add column privacy_default boolean not null default false/);
+  assert.match(preferences, /grant update \(display_name, base_currency, theme, privacy_default\)/);
+  assert.doesNotMatch(preferences, /grant update \([^)]*(role|status|disabled_at)/);
+});
