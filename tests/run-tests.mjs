@@ -1,5 +1,6 @@
 import "./calculators.test.js";
 import "./annual-report.test.js";
+import "./admin-security.test.js";
 import "./annual-report-view.test.js";
 import "./auth-service.test.js";
 import "./auth-controller.test.js";

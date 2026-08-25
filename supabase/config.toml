@@ -1,5 +1,8 @@
 project_id = "personal-wealth"
 
+[functions.admin-users]
+verify_jwt = true
+
 [api]
 enabled = true
 schemas = ["public", "graphql_public"]

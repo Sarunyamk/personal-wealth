@@ -237,6 +237,25 @@ Exit criteria:
 - User A ไม่สามารถอ่านหรือ mutate record ของ User B ผ่าน UI หรือ direct request
 - service-role key ไม่อยู่ใน frontend หรือ repository
 
+## Phase 8.5 - Administration and Account Lifecycle
+
+เป้าหมาย: ให้ admin จัดการบัญชีโดยไม่เปิดเผย privileged key ใน frontend
+
+- [x] เพิ่ม role/status ใน profile และป้องกัน user แก้สิทธิ์ตัวเอง
+- [x] เพิ่ม restrictive RLS gate เพื่อบล็อกบัญชี disabled ทันที
+- [x] เพิ่ม Edge Function สำหรับ list/disable/enable/delete user
+- [x] ป้องกัน admin ปิดหรือลบบัญชีตัวเองและ admin คนสุดท้าย
+- [ ] สร้าง Admin UI พร้อม loading/empty/error/confirmation states
+- [ ] deploy Edge Function และ promote admin คนแรก
+- [ ] ทดสอบ disable/enable/delete และ data cascade ด้วย 2 users
+- [ ] ตั้ง hosted Auth session time-box เป็น 7 วันและตรวจ refresh-token behavior
+
+Exit criteria:
+
+- service-role key อยู่เฉพาะ Supabase Edge Function
+- disabled user อ่าน/เขียนข้อมูลไม่ได้แม้ access token เดิมยังไม่หมดอายุ
+- delete user ลบข้อมูลที่อ้างถึง `auth.users` ผ่าน cascade ครบทุกตาราง
+
 ## Phase 9 - Release and Deployment
 
 เป้าหมาย: ส่ง MVP ที่ deploy ซ้ำและตรวจสอบได้
