@@ -87,6 +87,11 @@ Profile status blocks database access immediately through restrictive RLS. The E
 bans the Auth account. Administrative lifecycle changes should use the Admin UI rather than manual
 profile edits so both layers remain synchronized.
 
+Migration `202608250006_sync_auth_ban_status.sql` keeps `auth.users.banned_until` and
+`profiles.status` synchronized with a database trigger. This also covers ban/unban changes made in
+the Supabase Authentication dashboard. The Admin Edge Function verifies the synchronized profile
+status before returning success.
+
 ## 6. Profile preferences
 
 Migration `202608250004_profile_preferences.sql` adds `privacy_default` and grants authenticated

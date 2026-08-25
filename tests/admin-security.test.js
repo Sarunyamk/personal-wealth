@@ -52,6 +52,16 @@ test("RLS rejects revoked and sessions older than seven days", () => {
   assert.match(migration, /revoke all on function public\.account_access_status\(\) from public, anon/);
 });
 
+test("Auth ban changes synchronize the profile used by Admin UI and RLS", () => {
+  const syncMigration = readFileSync("supabase/migrations/202608250006_sync_auth_ban_status.sql", "utf8");
+  assert.match(syncMigration, /after update of banned_until on auth\.users/);
+  assert.match(syncMigration, /set status = 'disabled'/);
+  assert.match(syncMigration, /set status = 'active', disabled_at = null/);
+  assert.match(syncMigration, /from auth\.users users/);
+  assert.match(edgeFunction, /profile\?\.status !== "disabled"/);
+  assert.match(edgeFunction, /profile\?\.status !== "active"/);
+});
+
 test("admin user listing is an authenticated database RPC", () => {
   assert.match(adminListMigration, /create or replace function public\.admin_list_users\(\)/);
   assert.match(adminListMigration, /security definer/);

@@ -12,7 +12,8 @@ test("admin service invokes only the server-side account function", async () => 
     functions: {
       async invoke(name, options) {
         calls.push([name, options]);
-        return { data: options.body.action === "list" ? { users: [{ id: "u1" }] } : { ok: true } };
+        const status = options.body.action === "disable" ? "disabled" : "active";
+        return { data: options.body.action === "delete" ? { ok: true } : { ok: true, user: { status } } };
       },
     },
   });
@@ -24,6 +25,14 @@ test("admin service invokes only the server-side account function", async () => 
     calls.slice(1).map(([, options]) => options.body.action),
     ["disable", "enable", "delete"],
   );
+});
+
+test("admin service rejects a successful response without persisted status", async () => {
+  const admin = createAdminService({
+    async rpc() { return { data: [] }; },
+    functions: { async invoke() { return { data: { ok: true, user: { status: "active" } } }; } },
+  });
+  await assert.rejects(admin.disableUser("u1"), /not persisted/i);
 });
 
 test("admin service preserves the Edge Function response error", async () => {

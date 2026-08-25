@@ -22,6 +22,12 @@ export function createAdminService(client) {
         details: [responseError, error?.message].filter(Boolean),
       });
     }
+    const expectedStatus = action === "disable" ? "disabled" : action === "enable" ? "active" : null;
+    if (expectedStatus && data?.user?.status !== expectedStatus) {
+      throw new AppError(ERROR_CODES.AUTH, "Admin operation was not persisted.", {
+        details: ["สถานะบัญชีไม่ได้เปลี่ยน กรุณาลองใหม่"],
+      });
+    }
     return data;
   }
 

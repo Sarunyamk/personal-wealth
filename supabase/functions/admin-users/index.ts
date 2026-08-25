@@ -98,16 +98,19 @@ Deno.serve(async (request) => {
     }
 
     if (body.action === "disable") {
-      const { error: profileError } = await adminClient
-        .from("profiles")
-        .update({ status: "disabled", disabled_at: new Date().toISOString() })
-        .eq("id", userId);
-      if (profileError) throw profileError;
       const { error } = await adminClient.auth.admin.updateUserById(userId, {
         ban_duration: "876000h",
       });
       if (error) throw error;
-      return response({ ok: true });
+      const { data: profile, error: profileError } = await adminClient
+        .from("profiles")
+        .select("id,status,disabled_at")
+        .eq("id", userId)
+        .single();
+      if (profileError || profile?.status !== "disabled") {
+        throw profileError ?? new Error("Profile did not synchronize to disabled");
+      }
+      return response({ ok: true, user: profile });
     }
 
     if (body.action === "enable") {
@@ -115,12 +118,15 @@ Deno.serve(async (request) => {
         ban_duration: "none",
       });
       if (error) throw error;
-      const { error: profileError } = await adminClient
+      const { data: profile, error: profileError } = await adminClient
         .from("profiles")
-        .update({ status: "active", disabled_at: null })
-        .eq("id", userId);
-      if (profileError) throw profileError;
-      return response({ ok: true });
+        .select("id,status,disabled_at")
+        .eq("id", userId)
+        .single();
+      if (profileError || profile?.status !== "active") {
+        throw profileError ?? new Error("Profile did not synchronize to active");
+      }
+      return response({ ok: true, user: profile });
     }
 
     if (body.action === "delete") {

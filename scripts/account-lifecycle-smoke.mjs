@@ -78,6 +78,13 @@ try {
   if (disabledProfileError) throw disabledProfileError;
   assert.equal(disabledProfile.status, "disabled");
   assert.ok(disabledProfile.disabled_at);
+  const disabledList = await adminLogin.instance.rpc("admin_list_users");
+  if (disabledList.error) throw disabledList.error;
+  assert.equal(
+    disabledList.data.find((user) => user.id === targetAccount.id)?.status,
+    "disabled",
+    "A refreshed Admin list must show the disabled state",
+  );
   const { data: activeAfterDisable, error: activeError } = await targetLogin.instance.rpc("is_active_user");
   if (activeError) throw activeError;
   assert.equal(activeAfterDisable, false);
@@ -87,6 +94,13 @@ try {
   await invoke(adminLogin.instance, "enable", targetAccount.id);
   const enabledLogin = await signIn(targetAccount);
   if (enabledLogin.error) throw enabledLogin.error;
+  const enabledList = await adminLogin.instance.rpc("admin_list_users");
+  if (enabledList.error) throw enabledList.error;
+  assert.equal(
+    enabledList.data.find((user) => user.id === targetAccount.id)?.status,
+    "active",
+    "A refreshed Admin list must show the enabled state",
+  );
   const { data: activeAfterEnable, error: enabledActiveError } = await enabledLogin.instance.rpc("is_active_user");
   if (enabledActiveError) throw enabledActiveError;
   assert.equal(activeAfterEnable, true);
