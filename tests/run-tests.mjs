@@ -14,6 +14,7 @@ import "./dashboard.test.js";
 import "./formatters.test.js";
 import "./goals.test.js";
 import "./goals-view.test.js";
+import "./global-loading.test.js";
 import "./monthly-finance.test.js";
 import "./monthly-finance-view.test.js";
 import "./navigation.test.js";

@@ -373,6 +373,12 @@
     </dialog>
 
     <div class="toast-region" aria-live="polite" aria-atomic="true" data-toast-region></div>
+    <div class="global-loading" data-global-loading role="status" aria-live="polite" aria-atomic="true" hidden>
+      <div class="global-loading__panel">
+        <span class="global-loading__spinner" aria-hidden="true"></span>
+        <strong data-global-loading-label>กำลังโหลดข้อมูล</strong>
+      </div>
+    </div>
     <script src="config.js"></script>
     <script src="assets/vendor/supabase.umd.js"></script>
     <script src="assets/vendor/chart.umd.js"></script>

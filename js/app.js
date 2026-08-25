@@ -3,6 +3,7 @@ import { requestConfirmation } from "./components/confirmation.js";
 import { mountAnnualReportCharts, mountDashboardCharts, unmountDashboardCharts } from "./components/charts.js";
 import { hydrateIcons } from "./components/icons.js";
 import { showToast } from "./components/toast.js";
+import { beginGlobalLoading, trackAsyncService } from "./components/global-loading.js";
 import {
   NAVIGATION,
   ADMIN_NAVIGATION,
@@ -49,7 +50,11 @@ const onboardingDialog = document.querySelector("[data-onboarding-dialog]");
 const quickAddDialog = document.querySelector("[data-quick-add-dialog]");
 const moreDialog = document.querySelector("[data-more-dialog]");
 const privacyState = createPrivacyState(undefined, globalThis.__CURRENT_PROFILE__?.privacy_default);
-const { wealth, onboarding: onboardingState, admin, settings } = createAppServices();
+const services = createAppServices();
+const wealth = trackAsyncService(services.wealth);
+const onboardingState = services.onboarding;
+const admin = trackAsyncService(services.admin, "กำลังอัปเดตบัญชี");
+const settings = trackAsyncService(services.settings, "กำลังบันทึกการตั้งค่า");
 const navigation = admin ? Object.freeze([...NAVIGATION, ADMIN_NAVIGATION]) : NAVIGATION;
 const viewState = {
   dashboard: { range: "6M" },
@@ -173,7 +178,7 @@ function animateCountUps(root, isPrivate) {
   });
 }
 
-async function renderCurrentView() {
+async function renderCurrentViewContent() {
   const viewId = currentViewId();
   const view = getNavigationItem(viewId, navigation);
   let dashboardData;
@@ -292,6 +297,12 @@ async function renderCurrentView() {
   if (annualReportData) mountAnnualReportCharts({ ...annualReportData, isPrivate: privacyState.value });
 }
 
+async function renderCurrentView() {
+  const release = beginGlobalLoading("กำลังโหลดหน้า");
+  try { return await renderCurrentViewContent(); }
+  finally { release(); }
+}
+
 function setFormError(form, message = "") {
   const error = form.querySelector("[role='alert']");
   if (!error) return;
@@ -304,8 +315,14 @@ function field(form, name) {
 }
 
 function setSubmitting(form, isSubmitting) {
-  if (isSubmitting) form.dataset.submitting = "true";
-  else delete form.dataset.submitting;
+  if (isSubmitting) {
+    form.dataset.submitting = "true";
+    form.__releaseLoading ??= beginGlobalLoading("กำลังบันทึกข้อมูล");
+  } else {
+    delete form.dataset.submitting;
+    form.__releaseLoading?.();
+    delete form.__releaseLoading;
+  }
   form.querySelector("[type='submit']").disabled = isSubmitting;
 }
 

@@ -100,6 +100,27 @@ async function verifyViewport(browser, baseUrl, viewport) {
   }
 
   await page.goto(`${baseUrl}#dashboard`, { waitUntil: "networkidle" });
+  try {
+    await page.locator("[data-sensitive]").first().waitFor({ timeout: 5_000 });
+  } catch {
+    throw new Error(`Dashboard did not render: ${await page.locator("[data-page]").innerText()} | ${errors.join(" | ")}`);
+  }
+  await page.evaluate(async () => {
+    const { beginGlobalLoading } = await import("./js/components/global-loading.js");
+    globalThis.__releaseE2eLoading = beginGlobalLoading("กำลังทดสอบ Loading");
+  });
+  await page.locator("[data-global-loading]:visible").waitFor();
+  assert.equal(await page.locator(".app-shell").getAttribute("aria-busy"), "true");
+  assert.equal(await page.locator(".app-shell").evaluate((element) => element.inert), true);
+  await page.locator('[data-nav-view="assets"]').first().evaluate((element) => element.focus());
+  assert.equal(
+    await page.locator('[data-nav-view="assets"]').first().evaluate((element) => element === document.activeElement),
+    false,
+    "Loading overlay allowed navigation focus",
+  );
+  await page.evaluate(() => globalThis.__releaseE2eLoading());
+  await page.locator("[data-global-loading]").waitFor({ state: "hidden" });
+  assert.equal(await page.locator(".app-shell").evaluate((element) => element.inert), false);
   await page.locator("[data-privacy-toggle]").click();
   const sensitiveValues = await page.locator("[data-sensitive]").allTextContents();
   assert.ok(sensitiveValues.length > 0, "Dashboard has no sensitive values to verify");

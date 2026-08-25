@@ -158,6 +158,46 @@
   animation: pulse 1.4s ease-in-out infinite;
 }
 
+.global-loading {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: color-mix(in srgb, var(--color-page) 58%, transparent);
+  backdrop-filter: blur(0.125rem);
+  cursor: progress;
+}
+
+.global-loading[hidden] { display: none; }
+
+.global-loading__panel {
+  display: flex;
+  min-width: 11rem;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-dialog);
+}
+
+.global-loading__spinner {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 0.1875rem solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .global-loading__spinner { animation-duration: 1.4s; }
+}
+
 .empty-state {
   display: grid;
   max-width: 32rem;

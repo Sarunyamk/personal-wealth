@@ -16,6 +16,7 @@ const requiredHtmlPatterns = [
   [/data-confirm-dialog/, "confirmation dialog"],
   [/data-quick-add-dialog/, "mobile quick add dialog"],
   [/data-quick-add-open/, "mobile quick add trigger"],
+  [/data-global-loading[^>]+role="status"/, "blocking global loading status"],
 ];
 
 for (const [pattern, label] of requiredHtmlPatterns) {

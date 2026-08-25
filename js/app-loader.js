@@ -11,6 +11,7 @@ import { createAuthService } from "./services/auth-service.js";
 import { escapeHtml } from "./utils/html.js";
 import { bindProfileIdentity } from "./utils/profile-identity.js";
 import { setDefaultCurrency } from "./utils/formatters.js";
+import { trackAsyncService } from "./components/global-loading.js";
 
 const client = createSupabaseBrowserClient();
 const accessNoticeKey = "personal-wealth:access-notice";
@@ -79,7 +80,7 @@ if (!client) {
   globalThis.__ALLOW_LOCAL_DEMO__ = true;
   await loadApplication();
 } else {
-  const auth = createAuthService(client);
+  const auth = trackAsyncService(createAuthService(client), "กำลังตรวจสอบบัญชี");
   let session;
   let startupFailed = false;
   try {
