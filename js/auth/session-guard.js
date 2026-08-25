@@ -10,6 +10,17 @@ export function authStartupMessage(error) {
 }
 
 export const DISABLED_ACCOUNT_MESSAGE = "บัญชีของคุณถูกปิดใช้งาน กรุณาติดต่อผู้ดูแลระบบ";
+export const EXPIRED_SESSION_MESSAGE = "Session หมดอายุแล้ว กรุณาเข้าสู่ระบบอีกครั้ง";
+
+export function accessNotice(status) {
+  if (status === "disabled") return DISABLED_ACCOUNT_MESSAGE;
+  if (status === "expired" || status === "signed_out") return EXPIRED_SESSION_MESSAGE;
+  return "";
+}
+
+export function shouldEndSession({ data, error }) {
+  return !error && ["disabled", "expired", "signed_out"].includes(data);
+}
 
 export function isInactiveAccessResult({ data, error }) {
   return !error && data === false;

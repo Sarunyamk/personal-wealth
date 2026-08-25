@@ -44,6 +44,14 @@ test("disabled accounts are restricted from every user-owned table", () => {
   assert.match(migration, /status = 'active'/);
 });
 
+test("RLS rejects revoked and sessions older than seven days", () => {
+  const migration = readFileSync("supabase/migrations/202608250005_session_access_control.sql", "utf8");
+  assert.match(migration, /from auth\.sessions/);
+  assert.match(migration, /created_at > now\(\) - interval '7 days'/);
+  assert.match(migration, /public\.account_access_status\(\) = 'active'/);
+  assert.match(migration, /revoke all on function public\.account_access_status\(\) from public, anon/);
+});
+
 test("admin user listing is an authenticated database RPC", () => {
   assert.match(adminListMigration, /create or replace function public\.admin_list_users\(\)/);
   assert.match(adminListMigration, /security definer/);

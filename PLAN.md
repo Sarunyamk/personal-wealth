@@ -61,10 +61,12 @@ database และ user account ไปช่วงท้าย หลังจ�
 
 ### Phase D - Session and Security
 
-- [ ] ตั้ง JWT expiry ประมาณ 1 ชั่วโมง, session time-box 7 วัน และ refresh-token rotation
-- [ ] ทดสอบ expired, revoked, banned, offline และ multi-tab sessions
-- [ ] ตรวจ client bundle และ git history ว่าไม่มี secret/service-role key
-- [ ] ทำ security regression tests สำหรับ admin RPC, Edge Function และ RLS
+- [x] ตั้ง local JWT expiry 1 ชั่วโมง, refresh-token rotation และ time-box 7 วัน
+- [x] บังคับ hosted session อายุไม่เกิน 7 วันและ revoked-session denial ผ่าน RLS
+- [x] ทดสอบ expired, revoked, banned และ offline behavior แบบ automated
+- [ ] ตรวจ hosted Auth dashboard และทดสอบ logout/refresh ด้วย browser สองแท็บ
+- [x] ตรวจ client bundle และ git history ว่าไม่มี secret/service-role key
+- [x] ทำ security regression tests สำหรับ admin RPC, Edge Function และ RLS
 
 ### Phase E - Production Release
 

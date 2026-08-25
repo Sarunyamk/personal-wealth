@@ -1,9 +1,10 @@
 import { authErrorFromHash, mountAuthController, authModeFromHash } from "./auth/auth-controller.js";
 import {
   DISABLED_ACCOUNT_MESSAGE,
+  accessNotice,
   authStartupMessage,
-  isInactiveAccessResult,
   shouldReturnToLogin,
+  shouldEndSession,
 } from "./auth/session-guard.js";
 import { createSupabaseBrowserClient } from "./data/supabase-client.js";
 import { createAuthService } from "./services/auth-service.js";
@@ -27,9 +28,9 @@ function mountLogin(auth, initialError = "") {
   mountAuthController({ root, auth, initialMode: "login", initialError });
 }
 
-async function endDisabledSession(auth) {
-  window.alert(DISABLED_ACCOUNT_MESSAGE);
-  window.sessionStorage.setItem(accessNoticeKey, DISABLED_ACCOUNT_MESSAGE);
+async function endRestrictedSession(auth, message = DISABLED_ACCOUNT_MESSAGE) {
+  window.alert(message);
+  window.sessionStorage.setItem(accessNoticeKey, message);
   try {
     await auth.signOut();
   } finally {
@@ -43,8 +44,8 @@ function monitorActiveAccount({ auth }) {
     if (checking) return;
     checking = true;
     try {
-      const result = await client.rpc("is_active_user");
-      if (isInactiveAccessResult(result)) await endDisabledSession(auth);
+      const result = await client.rpc("account_access_status");
+      if (shouldEndSession(result)) await endRestrictedSession(auth, accessNotice(result.data));
     } catch (error) {
       console.error("Unable to verify account status", error);
     } finally {
@@ -141,9 +142,9 @@ if (!client) {
         await loadApplication();
       } catch (error) {
         console.error(error);
-        const activeResult = await client.rpc("is_active_user");
-        if (isInactiveAccessResult(activeResult)) {
-          await endDisabledSession(auth);
+        const accessResult = await client.rpc("account_access_status");
+        if (shouldEndSession(accessResult)) {
+          await endRestrictedSession(auth, accessNotice(accessResult.data));
         } else {
           const page = document.querySelector("[data-page]");
           page.innerHTML = `<section class="card empty-state" role="alert">

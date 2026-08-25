@@ -99,10 +99,24 @@ JWT and session limits.
 
 ## 7. Hosted session settings
 
-In Supabase Authentication settings:
+The local config sets JWT expiry to 3600 seconds, enables refresh-token rotation with the default
+10-second reuse interval, and uses a 168-hour time-box. Run the database-backed test with:
+
+```powershell
+npm run test:session
+```
+
+The hosted Free plan does not provide native time-boxed sessions. Migration
+`202608250005_session_access_control.sql` therefore checks the JWT `session_id` against
+`auth.sessions` inside the restrictive RLS gate. Sessions older than seven days and revoked
+sessions immediately lose access to all user-owned data.
+
+In the hosted Supabase Authentication settings, verify:
 
 - JWT expiry: approximately 3600 seconds
-- Time-boxed sessions: 7 days
 - Refresh-token rotation: enabled
+- Refresh-token reuse interval: 10 seconds
 
-Re-test login, refresh, logout, disabled accounts and expired sessions after changing these values.
+Use two browser profiles to re-test login, refresh, global logout, disabled accounts, and expired
+sessions after changing these values. Native seven-day time-boxing can replace the RLS fallback if
+the project is upgraded to Pro.
