@@ -98,15 +98,15 @@ Deno.serve(async (request) => {
     }
 
     if (body.action === "disable") {
-      const { error } = await adminClient.auth.admin.updateUserById(userId, {
-        ban_duration: "876000h",
-      });
-      if (error) throw error;
       const { error: profileError } = await adminClient
         .from("profiles")
         .update({ status: "disabled", disabled_at: new Date().toISOString() })
         .eq("id", userId);
       if (profileError) throw profileError;
+      const { error } = await adminClient.auth.admin.updateUserById(userId, {
+        ban_duration: "876000h",
+      });
+      if (error) throw error;
       return response({ ok: true });
     }
 

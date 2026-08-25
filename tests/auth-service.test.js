@@ -78,6 +78,20 @@ test("auth service maps provider errors to a stable auth error", async () => {
   });
 });
 
+test("auth service explains banned accounts without exposing provider wording", async () => {
+  const auth = createAuthService({
+    auth: {
+      async signInWithPassword() {
+        return { data: null, error: { message: "User is banned" } };
+      },
+    },
+  });
+  await assert.rejects(
+    auth.signIn({ email: "user@example.com", password: "password1" }),
+    (error) => error.details[0] === "บัญชีของคุณถูกปิดใช้งาน กรุณาติดต่อผู้ดูแลระบบ",
+  );
+});
+
 test("password reset uses the configured callback and update validates strength", async () => {
   const client = authClient();
   const auth = createAuthService(client);

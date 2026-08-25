@@ -1,11 +1,62 @@
 import { authErrorFromHash, mountAuthController, authModeFromHash } from "./auth/auth-controller.js";
-import { authStartupMessage, shouldReturnToLogin } from "./auth/session-guard.js";
+import {
+  DISABLED_ACCOUNT_MESSAGE,
+  authStartupMessage,
+  isInactiveAccessResult,
+  shouldReturnToLogin,
+} from "./auth/session-guard.js";
 import { createSupabaseBrowserClient } from "./data/supabase-client.js";
 import { createAuthService } from "./services/auth-service.js";
 import { escapeHtml } from "./utils/html.js";
 import { bindProfileIdentity } from "./utils/profile-identity.js";
 
 const client = createSupabaseBrowserClient();
+const accessNoticeKey = "personal-wealth:access-notice";
+
+function takeAccessNotice() {
+  const notice = window.sessionStorage.getItem(accessNoticeKey) ?? "";
+  window.sessionStorage.removeItem(accessNoticeKey);
+  return notice;
+}
+
+function mountLogin(auth, initialError = "") {
+  document.querySelector(".app-shell").hidden = true;
+  const root = document.createElement("div");
+  document.body.prepend(root);
+  mountAuthController({ root, auth, initialMode: "login", initialError });
+}
+
+async function endDisabledSession(auth) {
+  window.alert(DISABLED_ACCOUNT_MESSAGE);
+  window.sessionStorage.setItem(accessNoticeKey, DISABLED_ACCOUNT_MESSAGE);
+  try {
+    await auth.signOut();
+  } finally {
+    window.location.reload();
+  }
+}
+
+function monitorActiveAccount({ auth }) {
+  let checking = false;
+  const check = async () => {
+    if (checking) return;
+    checking = true;
+    try {
+      const result = await client.rpc("is_active_user");
+      if (isInactiveAccessResult(result)) await endDisabledSession(auth);
+    } catch (error) {
+      console.error("Unable to verify account status", error);
+    } finally {
+      checking = false;
+    }
+  };
+  const interval = window.setInterval(check, 30_000);
+  window.addEventListener("focus", check);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") check();
+  });
+  return () => window.clearInterval(interval);
+}
 
 async function loadApplication() {
   try {
@@ -48,15 +99,14 @@ if (!client) {
   if (!startupFailed) {
     const resetMode = authModeFromHash(window.location.hash) === "reset";
     if (!session || resetMode) {
-      document.querySelector(".app-shell").hidden = true;
-      const root = document.createElement("div");
-      document.body.prepend(root);
-      mountAuthController({
-        root,
-        auth,
-        initialMode: resetMode ? "reset" : "login",
-        initialError: authErrorFromHash(window.location.hash),
-      });
+      if (resetMode) {
+        document.querySelector(".app-shell").hidden = true;
+        const root = document.createElement("div");
+        document.body.prepend(root);
+        mountAuthController({ root, auth, initialMode: "reset", initialError: authErrorFromHash(window.location.hash) });
+      } else {
+        mountLogin(auth, takeAccessNotice() || authErrorFromHash(window.location.hash));
+      }
     } else {
       try {
         const { data: profile, error: profileError } = await client
@@ -83,19 +133,25 @@ if (!client) {
             logout.disabled = false;
           }
         });
+        monitorActiveAccount({ auth });
         await loadApplication();
       } catch (error) {
         console.error(error);
-        const page = document.querySelector("[data-page]");
-        page.innerHTML = `<section class="card empty-state" role="alert">
-          <h2>ตรวจสอบสิทธิ์บัญชีไม่สำเร็จ</h2>
-          <p>บัญชีอาจถูกปิดใช้งานหรือไม่สามารถเชื่อมต่อข้อมูลได้</p>
-          <button class="button" type="button" data-access-signout>ออกจากระบบ</button>
-        </section>`;
-        page.querySelector("[data-access-signout]").addEventListener("click", async () => {
-          await auth.signOut();
-          window.location.reload();
-        });
+        const activeResult = await client.rpc("is_active_user");
+        if (isInactiveAccessResult(activeResult)) {
+          await endDisabledSession(auth);
+        } else {
+          const page = document.querySelector("[data-page]");
+          page.innerHTML = `<section class="card empty-state" role="alert">
+            <h2>ตรวจสอบสิทธิ์บัญชีไม่สำเร็จ</h2>
+            <p>บัญชีอาจถูกปิดใช้งานหรือไม่สามารถเชื่อมต่อข้อมูลได้</p>
+            <button class="button" type="button" data-access-signout>ออกจากระบบ</button>
+          </section>`;
+          page.querySelector("[data-access-signout]").addEventListener("click", async () => {
+            await auth.signOut();
+            window.location.reload();
+          });
+        }
       }
     }
   }

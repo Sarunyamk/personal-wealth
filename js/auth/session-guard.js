@@ -8,3 +8,9 @@ export function authStartupMessage(error) {
   }
   return error?.message || "เชื่อมต่อระบบบัญชีไม่สำเร็จ กรุณาลองใหม่";
 }
+
+export const DISABLED_ACCOUNT_MESSAGE = "บัญชีของคุณถูกปิดใช้งาน กรุณาติดต่อผู้ดูแลระบบ";
+
+export function isInactiveAccessResult({ data, error }) {
+  return !error && data === false;
+}

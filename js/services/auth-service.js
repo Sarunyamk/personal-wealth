@@ -15,9 +15,12 @@ function validatedPassword(value) {
 }
 
 function authError(error, action) {
+  const message = /banned/i.test(error?.message ?? "")
+    ? "บัญชีของคุณถูกปิดใช้งาน กรุณาติดต่อผู้ดูแลระบบ"
+    : error?.message;
   return new AppError(ERROR_CODES.AUTH, `${action} failed.`, {
     cause: error,
-    details: [error?.message].filter(Boolean),
+    details: [message].filter(Boolean),
   });
 }
 
