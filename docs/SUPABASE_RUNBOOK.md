@@ -67,6 +67,14 @@ Use two separate browser profiles or an incognito window.
 
 ## 5. Account lifecycle test
 
+Run the automated local Edge Function test first:
+
+```powershell
+npm run test:lifecycle
+```
+
+Then verify the visible notification/logout behavior in two hosted browser sessions:
+
 1. Admin disables User B from the Admin page.
 2. Confirm User B receives a disabled-account notice and is signed out within 30 seconds or when
    returning to the browser tab.

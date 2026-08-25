@@ -12,3 +12,6 @@ Thumbs.db
 .idea/
 .vscode/
 *.log
+
+supabase/.branches/
+supabase/.temp/
