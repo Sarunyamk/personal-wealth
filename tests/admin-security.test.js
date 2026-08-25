@@ -14,6 +14,10 @@ const adminListMigration = readFileSync(
   new URL("../supabase/migrations/202608250002_admin_list_users.sql", import.meta.url),
   "utf8",
 );
+const adminServiceGrants = readFileSync(
+  new URL("../supabase/migrations/202608250003_admin_service_grants.sql", import.meta.url),
+  "utf8",
+);
 
 test("disabled accounts are restricted from every user-owned table", () => {
   for (const table of [
@@ -47,6 +51,12 @@ test("admin user listing is an authenticated database RPC", () => {
   assert.match(adminListMigration, /actor\.role = 'admin'/);
   assert.match(adminListMigration, /from auth\.users users/);
   assert.match(adminListMigration, /grant execute on function public\.admin_list_users\(\) to authenticated/);
+});
+
+test("Edge Function service role receives only required public-table privileges", () => {
+  assert.match(adminServiceGrants, /grant select on table public\.profiles to service_role/);
+  assert.match(adminServiceGrants, /grant update \(status, disabled_at\) on table public\.profiles to service_role/);
+  assert.doesNotMatch(adminServiceGrants, /grant (?:all|insert|delete)/i);
 });
 
 test("users cannot promote or reactivate themselves through the browser", () => {

@@ -49,6 +49,14 @@ Only intended administrators may have `role = 'admin'`. Normal accounts must rem
 
 ## 4. Two-user isolation test
 
+Run the automated local test after `supabase start` and `supabase db reset`:
+
+```powershell
+npm run test:rls
+```
+
+Then repeat the user-facing flow on hosted Supabase before release:
+
 Use two separate browser profiles or an incognito window.
 
 1. User A creates an asset, liability, transaction and goal.

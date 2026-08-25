@@ -37,16 +37,16 @@ database และ user account ไปช่วงท้าย หลังจ�
 - [x] financial data ใช้ Supabase repository ใน production และไม่ fallback ไป localStorage
 - [x] schema, constraints, ownership defaults, profile trigger และ RLS อยู่ใน migrations
 - [x] Admin list ใช้ authenticated `admin_list_users` RPC
-- [ ] รัน migrations ทั้งหมดบน Supabase project ปัจจุบัน
-- [ ] reset migrations บน local Supabase project ว่าง
-- [ ] ทดสอบ direct request ด้วย User A/User B ว่าอ่านและแก้ข้อมูลข้ามบัญชีไม่ได้
+- [x] รัน migrations ทั้งหมดบน Supabase project ปัจจุบัน
+- [x] reset migrations บน local Supabase project ว่าง
+- [x] ทดสอบ direct request ด้วย User A/User B ว่าอ่านและแก้ข้อมูลข้ามบัญชีไม่ได้
 
 ### Phase B - Account Lifecycle
 
 - [x] frontend ตรวจ disabled status ตอนเริ่มแอป ทุก 30 วินาที และเมื่อกลับเข้าแท็บ
 - [x] disabled session แจ้งเตือนก่อน logout และแสดงเหตุผลที่หน้า login
 - [x] Edge Function ป้องกัน self-management และ last-admin removal
-- [ ] deploy `admin-users` Edge Function เวอร์ชันล่าสุด
+- [x] deploy `admin-users` Edge Function เวอร์ชันล่าสุด
 - [ ] ทดสอบ disable, enable และ delete ด้วยสองบัญชีบน hosted Supabase
 - [ ] ยืนยันว่า delete ลบข้อมูล user-owned ทุกตารางผ่าน cascade
 
