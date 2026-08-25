@@ -1,3 +1,5 @@
+begin;
+
 alter table public.profiles
 add column role text not null default 'user' check (role in ('user', 'admin')),
 add column status text not null default 'active' check (status in ('active', 'disabled')),
@@ -97,3 +99,5 @@ create policy activities_require_active_user on public.activities
 as restrictive for all to authenticated
 using ((select public.is_active_user()))
 with check ((select public.is_active_user()));
+
+commit;
