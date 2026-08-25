@@ -21,3 +21,24 @@ test("admin service invokes only the server-side account function", async () => 
     ["list", "disable", "enable", "delete"],
   );
 });
+
+test("admin service preserves the Edge Function response error", async () => {
+  const admin = createAdminService({
+    functions: {
+      async invoke() {
+        return {
+          data: null,
+          error: {
+            message: "Edge Function returned a non-2xx status code",
+            context: { json: async () => ({ error: "Forbidden" }) },
+          },
+        };
+      },
+    },
+  });
+
+  await assert.rejects(admin.listUsers(), (error) => {
+    assert.deepEqual(error.details, ["Forbidden", "Edge Function returned a non-2xx status code"]);
+    return true;
+  });
+});

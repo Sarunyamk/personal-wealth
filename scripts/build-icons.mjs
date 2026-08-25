@@ -16,6 +16,7 @@ const iconNames = [
   "Goal",
   "House",
   "History",
+  "Key",
   "Landmark",
   "LayoutDashboard",
   "LogOut",

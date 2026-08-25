@@ -11,9 +11,13 @@ export function renderAdminLoading() {
     <section class="record-grid">${Array.from({ length: 3 }, () => `<div class="card skeleton" style="height:12rem"></div>`).join("")}</section>`;
 }
 
-export function renderAdminError() {
+export function renderAdminError(error) {
+  const details = error?.details?.filter(Boolean) ?? [];
+  const message = details.length
+    ? details.join(" · ")
+    : "ตรวจสอบ Edge Function, session และสิทธิ์ admin ใน profiles";
   return `<section class="card empty-state" role="alert"><h2>โหลดผู้ใช้ไม่สำเร็จ</h2>
-    <p>ตรวจสอบว่า deploy Edge Function และตั้งสิทธิ์ admin แล้ว</p>
+    <p>${escapeHtml(message)}</p>
     <button class="button" type="button" data-admin-retry>ลองใหม่</button></section>`;
 }
 

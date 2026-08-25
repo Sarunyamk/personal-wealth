@@ -12,7 +12,7 @@ export const PRIMARY_MOBILE_VIEWS = Object.freeze(["dashboard", "assets", "goals
 export const ADMIN_NAVIGATION = Object.freeze({
   id: "admin",
   label: "Admin",
-  icon: "users",
+  icon: "key",
 });
 
 export function getNavigationItem(viewId, navigation = NAVIGATION) {

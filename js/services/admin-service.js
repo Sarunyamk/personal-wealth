@@ -8,9 +8,18 @@ export function createAdminService(client) {
       body: { action, ...(userId ? { userId } : {}) },
     });
     if (error || data?.error) {
+      let responseError = data?.error;
+      if (!responseError && error?.context?.json) {
+        try {
+          const body = await error.context.json();
+          responseError = body?.error || body?.message;
+        } catch {
+          responseError = null;
+        }
+      }
       throw new AppError(ERROR_CODES.AUTH, "Admin operation failed.", {
         cause: error,
-        details: [data?.error, error?.message].filter(Boolean),
+        details: [responseError, error?.message].filter(Boolean),
       });
     }
     return data;

@@ -253,7 +253,7 @@ async function renderCurrentView() {
         currentUserId: globalThis.__CURRENT_PROFILE__.id,
       });
     } catch (error) {
-      page.innerHTML = renderAdminError();
+      page.innerHTML = renderAdminError(error);
       console.error(error);
     }
   } else {

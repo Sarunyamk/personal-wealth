@@ -17,5 +17,8 @@ test("admin user cards escape identities and protect the current account", () =>
 });
 
 test("admin view has a retryable error state", () => {
-  assert.match(renderAdminError(), /data-admin-retry/);
+  const html = renderAdminError({ details: ["<Forbidden>"] });
+  assert.match(html, /data-admin-retry/);
+  assert.match(html, /&lt;Forbidden&gt;/);
+  assert.doesNotMatch(html, /<Forbidden>/);
 });
