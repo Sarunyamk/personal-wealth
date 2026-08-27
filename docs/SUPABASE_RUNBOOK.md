@@ -114,6 +114,10 @@ before showing success. Asset currency comes from the persisted profile setting.
 Browser Supabase requests time out after 15 seconds so failed networks release the blocking loader
 and expose a retryable error instead of waiting for the browser's multi-minute network timeout.
 
+Production builds publish `assets`, `css`, and `js` under `release/<commit>/`. Keep these paths
+release-scoped so GitHub Pages and browser caches cannot combine modules or styles from different
+deployments. `config.js` remains at the site root because it is generated for each deployment.
+
 Changing a password calls Supabase global sign-out after the update. Existing access tokens on
 other devices can remain valid until JWT expiry; the session-security phase verifies the hosted
 JWT and session limits.

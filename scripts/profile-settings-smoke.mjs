@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { execSync } from "node:child_process";
 import { createClient } from "@supabase/supabase-js";
+import { createSettingsService } from "../js/services/settings-service.js";
 
 function localStatus() {
   const output = execSync("pnpm dlx supabase status -o json", { encoding: "utf8" });
@@ -24,17 +25,22 @@ try {
   const signedIn = await browser.auth.signInWithPassword(account);
   if (signedIn.error) throw signedIn.error;
 
-  const updated = await browser.from("profiles").update({
-    display_name: "Settings Smoke",
-    base_currency: "USD",
-    theme: "high-contrast",
-    privacy_default: true,
-  }).eq("id", userId).select("display_name,base_currency,theme,privacy_default,role,status").single();
-  if (updated.error) throw updated.error;
-  assert.deepEqual(updated.data, {
+  const settings = createSettingsService(browser);
+  const updated = await settings.updateProfile(userId, {
+    displayName: "Settings Smoke", baseCurrency: "USD",
+    theme: "high-contrast", privacyDefault: true,
+  });
+  assert.deepEqual({
+    display_name: updated.display_name, base_currency: updated.base_currency,
+    theme: updated.theme, privacy_default: updated.privacy_default,
+    role: updated.role, status: updated.status,
+  }, {
     display_name: "Settings Smoke", base_currency: "USD", theme: "high-contrast",
     privacy_default: true, role: "user", status: "active",
   });
+  const readback = await settings.getProfile(userId);
+  assert.equal(readback.display_name, "Settings Smoke");
+  assert.equal(readback.base_currency, "USD");
 
   const escalation = await browser.from("profiles").update({ role: "admin", status: "disabled" }).eq("id", userId);
   assert.ok(escalation.error, "A user must not update protected role or status fields");

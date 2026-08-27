@@ -62,6 +62,7 @@ database และ user account ไปช่วงท้าย หลังจ�
 - [x] integration test ยืนยันการบันทึก/อ่านกลับ profile settings และป้องกัน user แก้ role/status
 - [x] หน้า Settings query profile เมื่อเปิดหน้า และใช้ DB row จาก `UPDATE ... SELECT` หลังบันทึกโดยไม่ยิงซ้ำ
 - [x] Supabase request มี timeout 15 วินาที ป้องกัน global loading ค้างตาม browser network timeout
+- [x] Settings integration เรียก service จริงและยืนยัน display name/currency ด้วย DB read-back
 
 ### Phase D - Session and Security
 
@@ -76,6 +77,7 @@ database และ user account ไปช่วงท้าย หลังจ�
 
 - [x] GitHub Pages workflow และ production environment variables
 - [x] production Site URL/Redirect URLs สำหรับ GitHub Pages
+- [x] production assets ใช้ release path ตาม commit ป้องกัน JS/CSS cache คนละเวอร์ชันปะปนกัน
 - [ ] production smoke test: auth, wealth CRUD, monthly finance, goals, reports และ admin
 - [ ] ตรวจ 360/768/1024/1440 px, console, overflow และ accessibility บน production
 - [ ] อัปเดต setup, migration, deployment, recovery และ rollback documentation
