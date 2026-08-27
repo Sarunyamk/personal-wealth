@@ -93,7 +93,7 @@ try {
   }
   await page.locator("[data-global-loading]").waitFor({ state: "hidden" });
   await form.locator('[name="displayName"]').fill("After Settings");
-  await form.locator('[name="baseCurrency"]').selectOption("USD");
+  assert.equal(await form.locator('[name="baseCurrency"]').count(), 0);
   assert.equal(await form.locator('[name="displayName"]').inputValue(), "After Settings");
 
   const startedAt = Date.now();
@@ -130,8 +130,8 @@ try {
     formError: document.querySelector("[data-profile-settings-form] [role='alert']")?.textContent,
   }));
   assert.equal(uiState.name, "After Settings", JSON.stringify({ requestBody, uiState, readback: readback.data, errors }));
-  assert.match(uiState.currency, /^USD/, JSON.stringify({ uiState, readback: readback.data, errors }));
-  assert.deepEqual(readback.data, { display_name: "After Settings", base_currency: "USD" });
+  assert.match(uiState.currency, /^THB/, JSON.stringify({ uiState, readback: readback.data, errors }));
+  assert.deepEqual(readback.data, { display_name: "After Settings", base_currency: "THB" });
   assert.deepEqual(errors, []);
   console.log(`Settings UI smoke passed in ${elapsedMs}ms with database readback.`);
 } finally {

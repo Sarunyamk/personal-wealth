@@ -1,4 +1,4 @@
-import { PROFILE_CURRENCIES, PROFILE_THEMES } from "../services/settings-service.js";
+import { PROFILE_THEMES } from "../services/settings-service.js";
 import { escapeHtml } from "../utils/html.js";
 
 function options(values, current, labels = {}) {
@@ -16,7 +16,6 @@ export function renderSettingsView({ profile, email }) {
       <section class="card settings-section"><div><h3>โปรไฟล์และการแสดงผล</h3><p>ค่าที่ใช้กับบัญชีนี้ในทุกอุปกรณ์</p></div>
         <form class="settings-form" data-profile-settings-form>
           <label class="field"><span class="field__label">ชื่อที่แสดง</span><input class="field__input" name="displayName" maxlength="80" required value="${escapeHtml(profile.display_name ?? "")}"></label>
-          <label class="field"><span class="field__label">สกุลเงินหลัก</span><select class="field__input" name="baseCurrency">${options(PROFILE_CURRENCIES, profile.base_currency)}</select></label>
           <label class="field"><span class="field__label">ธีม</span><select class="field__input" name="theme">${options(PROFILE_THEMES, profile.theme, { fresh: "Fresh", "high-contrast": "High contrast" })}</select></label>
           <label class="settings-toggle"><input type="checkbox" name="privacyDefault"${profile.privacy_default ? " checked" : ""}><span><strong>ซ่อนยอดเงินเป็นค่าเริ่มต้น</strong><small>เปิด Privacy Mode เมื่อเข้าสู่ระบบบนอุปกรณ์ใหม่</small></span></label>
           <p class="field__error" role="alert" hidden></p><div><button class="button" type="submit">บันทึกการตั้งค่า</button></div>

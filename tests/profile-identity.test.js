@@ -13,7 +13,7 @@ test("profile identity falls back to the email name", () => {
   assert.equal(profileDisplayName({}, {}), "ผู้ใช้");
 });
 
-test("profile identity binds base currency labels", () => {
+test("profile identity always binds Thai baht labels", () => {
   const element = { textContent: "" };
   const meta = { textContent: "" };
   const root = {
@@ -24,6 +24,6 @@ test("profile identity binds base currency labels", () => {
     },
   };
   bindProfileIdentity(root, { base_currency: "USD" }, {});
-  assert.equal(element.textContent, "USD");
-  assert.equal(meta.textContent, "USD · Personal");
+  assert.equal(element.textContent, "THB");
+  assert.equal(meta.textContent, "THB · Personal");
 });

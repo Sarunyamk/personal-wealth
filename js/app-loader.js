@@ -10,7 +10,6 @@ import { createSupabaseBrowserClient } from "./data/supabase-client.js";
 import { createAuthService } from "./services/auth-service.js";
 import { escapeHtml } from "./utils/html.js";
 import { bindProfileIdentity } from "./utils/profile-identity.js";
-import { setDefaultCurrency } from "./utils/formatters.js";
 import { trackAsyncService } from "./components/global-loading.js";
 
 const client = createSupabaseBrowserClient();
@@ -123,7 +122,6 @@ if (!client) {
         globalThis.__CURRENT_PROFILE__ = profile;
         globalThis.__CURRENT_USER__ = session.user;
         document.documentElement.dataset.theme = profile.theme || "fresh";
-        setDefaultCurrency(profile.base_currency || "THB");
         bindProfileIdentity(document, profile, session.user);
         auth.subscribe(({ event }) => {
           if (shouldReturnToLogin(event)) window.location.reload();

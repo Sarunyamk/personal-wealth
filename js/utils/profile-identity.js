@@ -31,9 +31,9 @@ export function bindProfileIdentity(root, profile, user) {
     element.setAttribute("aria-label", `บัญชี ${displayName}`);
   });
   root.querySelectorAll("[data-profile-currency]").forEach((element) => {
-    element.textContent = profile?.base_currency || "THB";
+    element.textContent = "THB";
   });
   root.querySelectorAll(".sidebar__profile-meta").forEach((element) => {
-    element.textContent = `${profile?.base_currency || "THB"} · Personal`;
+    element.textContent = "THB · Personal";
   });
 }

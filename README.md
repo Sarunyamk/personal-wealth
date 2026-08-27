@@ -29,9 +29,9 @@ npm run test:settings-ui
 Open `http://localhost:4173` after running `npm start`.
 
 `npm run test:settings-ui` requires local Supabase and Chrome. It signs in through
-the production UI, updates display name and base currency, verifies that the
-blocking loader completes within five seconds, and reads the saved row back from
-PostgreSQL.
+the production UI, updates the display name, verifies that THB remains the only
+supported currency, checks that the blocking loader completes within five
+seconds, and reads the saved row back from PostgreSQL.
 
 `npm run build` creates the static GitHub Pages artifact in `dist/`. Production
 Supabase values are written to `dist/config.js` from `VITE_SUPABASE_URL` and

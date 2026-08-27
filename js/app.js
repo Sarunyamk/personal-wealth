@@ -13,7 +13,7 @@ import {
 } from "./config/navigation.js";
 import { TREND_RANGES, filterSnapshotsByRange } from "./domain/dashboard.js";
 import { createPrivacyState, presentAmount } from "./state/privacy.js";
-import { formatCurrency, formatDate, setDefaultCurrency } from "./utils/formatters.js";
+import { formatCurrency, formatDate } from "./utils/formatters.js";
 import { escapeHtml } from "./utils/html.js";
 import { bindProfileIdentity } from "./utils/profile-identity.js";
 import {
@@ -157,7 +157,6 @@ function updatePrivacyUi(isPrivate) {
 function applyCurrentProfile(profile) {
   globalThis.__CURRENT_PROFILE__ = profile;
   document.documentElement.dataset.theme = profile.theme;
-  setDefaultCurrency(profile.base_currency);
   bindProfileIdentity(document, profile, globalThis.__CURRENT_USER__);
 }
 
@@ -350,13 +349,12 @@ async function submitProfileSettings(event) {
   const data = new FormData(form);
   try {
     const profile = await settings.updateProfile(globalThis.__CURRENT_PROFILE__.id, {
-      displayName: data.get("displayName"), baseCurrency: data.get("baseCurrency"),
+      displayName: data.get("displayName"),
       theme: data.get("theme"), privacyDefault: data.get("privacyDefault") === "on",
     });
     applyCurrentProfile(profile);
     privacyState.set(profile.privacy_default);
     field(form, "displayName").value = profile.display_name;
-    field(form, "baseCurrency").value = profile.base_currency;
     field(form, "theme").value = profile.theme;
     field(form, "privacyDefault").checked = profile.privacy_default;
     showToast("บันทึกการตั้งค่าแล้ว");
@@ -646,7 +644,7 @@ async function submitOnboardingForm(event) {
   try {
     if (step === "asset") {
       await wealth.createAsset({
-        ...data, currency: globalThis.__CURRENT_PROFILE__.base_currency,
+        ...data, currency: "THB",
         liquidityLevel: ["cash", "bank-account"].includes(data.category) ? "high" : "low",
       });
     }
@@ -987,7 +985,7 @@ async function submitAssetForm(event) {
     category: data.get("category"),
     currentValue: data.get("value"),
     institution: data.get("institution"),
-    currency: globalThis.__CURRENT_PROFILE__.base_currency,
+    currency: "THB",
     liquidityLevel: data.get("liquidity"),
   };
   try {

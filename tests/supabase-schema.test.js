@@ -127,3 +127,13 @@ test("profile preferences are owner-editable without exposing admin fields", () 
   assert.match(preferences, /grant update \(display_name, base_currency, theme, privacy_default\)/);
   assert.doesNotMatch(preferences, /grant update \([^)]*(role|status|disabled_at)/);
 });
+
+test("single-currency migration fixes profiles and assets to THB", () => {
+  const singleCurrency = readFileSync("supabase/migrations/202608270001_single_currency_thb.sql", "utf8");
+  assert.match(singleCurrency, /update public\.profiles set base_currency = 'THB'/);
+  assert.match(singleCurrency, /update public\.assets set currency = 'THB'/);
+  assert.match(singleCurrency, /check \(base_currency = 'THB'\)/);
+  assert.match(singleCurrency, /check \(currency = 'THB'\)/);
+  assert.match(singleCurrency, /grant update \(display_name, theme, privacy_default\)/);
+  assert.doesNotMatch(singleCurrency, /grant update \([^)]*base_currency/);
+});

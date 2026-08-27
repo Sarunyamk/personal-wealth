@@ -27,7 +27,7 @@ try {
 
   const settings = createSettingsService(browser);
   const updated = await settings.updateProfile(userId, {
-    displayName: "Settings Smoke", baseCurrency: "USD",
+    displayName: "Settings Smoke",
     theme: "high-contrast", privacyDefault: true,
   });
   assert.deepEqual({
@@ -35,12 +35,15 @@ try {
     theme: updated.theme, privacy_default: updated.privacy_default,
     role: updated.role, status: updated.status,
   }, {
-    display_name: "Settings Smoke", base_currency: "USD", theme: "high-contrast",
+    display_name: "Settings Smoke", base_currency: "THB", theme: "high-contrast",
     privacy_default: true, role: "user", status: "active",
   });
   const readback = await settings.getProfile(userId);
   assert.equal(readback.display_name, "Settings Smoke");
-  assert.equal(readback.base_currency, "USD");
+  assert.equal(readback.base_currency, "THB");
+
+  const currencyMutation = await browser.from("profiles").update({ base_currency: "USD" }).eq("id", userId);
+  assert.ok(currencyMutation.error, "A user must not change the fixed THB currency");
 
   const escalation = await browser.from("profiles").update({ role: "admin", status: "disabled" }).eq("id", userId);
   assert.ok(escalation.error, "A user must not update protected role or status fields");

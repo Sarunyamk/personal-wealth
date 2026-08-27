@@ -3,11 +3,11 @@ import test from "node:test";
 import { ERROR_CODES } from "../js/errors/app-error.js";
 import { createSettingsService, validateProfileSettings } from "../js/services/settings-service.js";
 
-test("profile settings are normalized and validated", () => {
-  assert.deepEqual(validateProfileSettings({ displayName: "  Mink ", baseCurrency: "thb", theme: "fresh", privacyDefault: true }), {
-    display_name: "Mink", base_currency: "THB", theme: "fresh", privacy_default: true,
+test("profile settings are normalized and validated without currency mutation", () => {
+  assert.deepEqual(validateProfileSettings({ displayName: "  Mink ", baseCurrency: "USD", theme: "fresh", privacyDefault: true }), {
+    display_name: "Mink", theme: "fresh", privacy_default: true,
   });
-  assert.throws(() => validateProfileSettings({ displayName: "", baseCurrency: "BTC", theme: "dark" }), { code: ERROR_CODES.VALIDATION });
+  assert.throws(() => validateProfileSettings({ displayName: "", theme: "dark" }), { code: ERROR_CODES.VALIDATION });
 });
 
 test("settings service updates current profile preference fields", async () => {
@@ -32,14 +32,14 @@ test("settings service updates current profile preference fields", async () => {
     },
     auth: {},
   };
-  const profile = await createSettingsService(client).updateProfile("u1", { displayName: "Mink", baseCurrency: "THB", theme: "fresh", privacyDefault: true });
+  const profile = await createSettingsService(client).updateProfile("u1", { displayName: "Mink", theme: "fresh", privacyDefault: true });
   assert.equal(profile, result);
   assert.equal(calls.filter(([method]) => method === "from").length, 1);
   assert.deepEqual(calls.slice(-3), [["update-eq", "id", "u1"], ["update-select", "*"], ["update-single"]]);
 });
 
 test("settings service reads the current profile directly from Supabase", async () => {
-  const result = { id: "u1", base_currency: "USD" };
+  const result = { id: "u1", base_currency: "THB" };
   const query = { eq() { return this; }, async single() { return { data: result, error: null }; } };
   const client = { from() { return { select() { return query; } }; }, auth: {} };
   assert.equal(await createSettingsService(client).getProfile("u1"), result);

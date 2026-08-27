@@ -95,8 +95,10 @@ status before returning success.
 ## 6. Profile preferences
 
 Migration `202608250004_profile_preferences.sql` adds `privacy_default` and grants authenticated
-users column-level update access only to `display_name`, `base_currency`, `theme`, and
-`privacy_default`. Role, status, and disabled state remain admin-controlled.
+users column-level update access only to the profile preference fields defined at that phase.
+Migration `202608270001_single_currency_thb.sql` later removes `base_currency` from those editable
+columns and constrains profiles and assets to THB until real FX conversion is implemented. Role,
+status, and disabled state remain admin-controlled.
 
 After `supabase start` and `supabase db reset`, verify profile persistence and protected columns:
 
@@ -108,14 +110,15 @@ npm run test:settings-ui
 The smoke test creates an authenticated disposable user, saves all editable preferences, reads
 them back through RLS, verifies that role/status cannot be changed, and removes the user.
 The browser smoke test additionally signs in through the production UI, waits for each blocking
-loading state, submits display name and currency, requires completion within five seconds, and
-verifies both the visible identity and the PostgreSQL row. It requires Chrome in addition to the
-running local Supabase stack.
+loading state, submits the display name, confirms THB remains unchanged, requires completion
+within five seconds, and verifies both the visible identity and the PostgreSQL row. It requires
+Chrome in addition to the running local Supabase stack.
 
 The UI treats Supabase as authoritative: Settings fetches the profile whenever the page opens. A
 save uses the row returned by `UPDATE ... SELECT` to update the UI without a redundant second read.
 Financial and admin mutations complete first, then the current view queries its repository again
-before showing success. Asset currency comes from the persisted profile setting.
+before showing success. Asset currency is fixed to THB; changing only the display symbol without
+converting values is forbidden.
 Browser Supabase requests time out after 15 seconds so failed networks release the blocking loader
 and expose a retryable error instead of waiting for the browser's multi-minute network timeout.
 

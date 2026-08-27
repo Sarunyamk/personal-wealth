@@ -1,20 +1,16 @@
 import { validationError } from "../errors/app-error.js";
 
 export const PROFILE_THEMES = Object.freeze(["fresh", "high-contrast"]);
-export const PROFILE_CURRENCIES = Object.freeze(["THB", "USD", "EUR", "JPY"]);
 
 export function validateProfileSettings(input) {
   const displayName = String(input?.displayName ?? "").trim();
-  const baseCurrency = String(input?.baseCurrency ?? "").trim().toUpperCase();
   const theme = String(input?.theme ?? "").trim();
   const details = [];
   if (displayName.length < 1 || displayName.length > 80) details.push("ชื่อที่แสดงต้องมี 1-80 ตัวอักษร");
-  if (!PROFILE_CURRENCIES.includes(baseCurrency)) details.push("กรุณาเลือกสกุลเงินที่รองรับ");
   if (!PROFILE_THEMES.includes(theme)) details.push("กรุณาเลือกธีมที่รองรับ");
   if (details.length) throw validationError(details);
   return Object.freeze({
     display_name: displayName,
-    base_currency: baseCurrency,
     theme,
     privacy_default: Boolean(input?.privacyDefault),
   });

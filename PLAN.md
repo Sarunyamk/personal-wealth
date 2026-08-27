@@ -54,7 +54,7 @@ database และ user account ไปช่วงท้าย หลังจ�
 
 ### Phase C - User Settings
 
-- [x] แก้ display name และ base currency
+- [x] แก้ display name และยึด THB สกุลเดียวจนกว่าจะมีระบบ FX ที่แปลงมูลค่าจริง
 - [x] เลือก theme และ privacy default ผ่าน design tokens
 - [x] เปลี่ยนรหัสผ่านและ logout ทุกอุปกรณ์
 - [x] แสดง email, role และ account status แบบ read-only
@@ -62,7 +62,7 @@ database และ user account ไปช่วงท้าย หลังจ�
 - [x] integration test ยืนยันการบันทึก/อ่านกลับ profile settings และป้องกัน user แก้ role/status
 - [x] หน้า Settings query profile เมื่อเปิดหน้า และใช้ DB row จาก `UPDATE ... SELECT` หลังบันทึกโดยไม่ยิงซ้ำ
 - [x] Supabase request มี timeout 15 วินาที ป้องกัน global loading ค้างตาม browser network timeout
-- [x] Settings integration เรียก service จริงและยืนยัน display name/currency ด้วย DB read-back
+- [x] Settings integration เรียก service จริงและยืนยัน display name/THB ด้วย DB read-back
 - [x] browser integration login และ submit Settings ผ่าน production build ภายใน 5 วินาที พร้อมยืนยัน UI/DB read-back
 
 ### Phase D - Session and Security

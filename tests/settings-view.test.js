@@ -7,6 +7,7 @@ const profile = { display_name: "Mink", base_currency: "THB", theme: "fresh", pr
 test("settings view exposes preferences and read-only account facts", () => {
   const html = renderSettingsView({ profile, email: "mink@example.com" });
   assert.match(html, /data-profile-settings-form/);
+  assert.doesNotMatch(html, /name="baseCurrency"/);
   assert.match(html, /name="privacyDefault" checked/);
   assert.match(html, /mink@example\.com/);
   assert.match(html, />admin</);

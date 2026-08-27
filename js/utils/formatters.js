@@ -1,15 +1,9 @@
 const DEFAULT_LOCALE = "th-TH";
-let defaultCurrency = "THB";
-
-export function setDefaultCurrency(currency) {
-  const value = String(currency ?? "").trim().toUpperCase();
-  if (!/^[A-Z]{3}$/.test(value)) throw new TypeError("Currency must be a 3-letter ISO code.");
-  defaultCurrency = value;
-}
+const DEFAULT_CURRENCY = "THB";
 
 export function formatCurrency(
   amount,
-  { locale = DEFAULT_LOCALE, currency = defaultCurrency } = {},
+  { locale = DEFAULT_LOCALE, currency = DEFAULT_CURRENCY } = {},
 ) {
   if (!Number.isFinite(amount)) return "-";
   return new Intl.NumberFormat(locale, {
@@ -23,7 +17,7 @@ export function formatCurrency(
 
 export function formatCompactCurrency(
   amount,
-  { locale = DEFAULT_LOCALE, currency = defaultCurrency } = {},
+  { locale = DEFAULT_LOCALE, currency = DEFAULT_CURRENCY } = {},
 ) {
   if (!Number.isFinite(amount)) return "-";
   return new Intl.NumberFormat(locale, {
