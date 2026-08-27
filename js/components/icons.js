@@ -1,4 +1,8 @@
-const SPRITE_PATH = "assets/icons/lucide-sprite.svg";
+export function iconSpriteUrl(moduleUrl = import.meta.url) {
+  return new URL("../../assets/icons/lucide-sprite.svg", moduleUrl).href;
+}
+
+const SPRITE_PATH = iconSpriteUrl();
 
 export function hydrateIcons(root = document) {
   const placeholders = root.querySelectorAll("[data-icon]:not([data-icon-ready])");

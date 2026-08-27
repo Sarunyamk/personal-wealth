@@ -78,6 +78,7 @@ database และ user account ไปช่วงท้าย หลังจ�
 - [x] GitHub Pages workflow และ production environment variables
 - [x] production Site URL/Redirect URLs สำหรับ GitHub Pages
 - [x] production assets ใช้ release path ตาม commit ป้องกัน JS/CSS cache คนละเวอร์ชันปะปนกัน
+- [x] production build smoke ตรวจ CSS/JS/vendor/icon sprite ทุก release path ว่าตอบ 200
 - [ ] production smoke test: auth, wealth CRUD, monthly finance, goals, reports และ admin
 - [ ] ตรวจ 360/768/1024/1440 px, console, overflow และ accessibility บน production
 - [ ] อัปเดต setup, migration, deployment, recovery และ rollback documentation

@@ -17,8 +17,9 @@
     "test:rls": "node scripts/rls-isolation-smoke.mjs",
     "test:session": "node scripts/session-security-smoke.mjs",
     "test:settings": "node scripts/profile-settings-smoke.mjs",
+    "test:build": "node scripts/build-smoke.mjs",
     "test:e2e": "node scripts/e2e-smoke.mjs",
-    "verify": "npm run lint && npm run format:check && npm run ui:check && npm test && npm run test:e2e"
+    "verify": "npm run lint && npm run format:check && npm run ui:check && npm test && npm run test:build && npm run test:e2e"
   },
   "engines": {
     "node": ">=20"

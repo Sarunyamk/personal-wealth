@@ -117,6 +117,8 @@ and expose a retryable error instead of waiting for the browser's multi-minute n
 Production builds publish `assets`, `css`, and `js` under `release/<commit>/`. Keep these paths
 release-scoped so GitHub Pages and browser caches cannot combine modules or styles from different
 deployments. `config.js` remains at the site root because it is generated for each deployment.
+Run `npm run test:build` after changing asset paths; it serves the production output and verifies
+the release-scoped styles, scripts, vendor bundles, and Lucide sprite all return HTTP 200.
 
 Changing a password calls Supabase global sign-out after the update. Existing access tokens on
 other devices can remain valid until JWT expiry; the session-security phase verifies the hosted
