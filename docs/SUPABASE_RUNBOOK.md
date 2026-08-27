@@ -102,10 +102,15 @@ After `supabase start` and `supabase db reset`, verify profile persistence and p
 
 ```powershell
 npm run test:settings
+npm run test:settings-ui
 ```
 
 The smoke test creates an authenticated disposable user, saves all editable preferences, reads
 them back through RLS, verifies that role/status cannot be changed, and removes the user.
+The browser smoke test additionally signs in through the production UI, waits for each blocking
+loading state, submits display name and currency, requires completion within five seconds, and
+verifies both the visible identity and the PostgreSQL row. It requires Chrome in addition to the
+running local Supabase stack.
 
 The UI treats Supabase as authoritative: Settings fetches the profile whenever the page opens. A
 save uses the row returned by `UPDATE ... SELECT` to update the UI without a redundant second read.

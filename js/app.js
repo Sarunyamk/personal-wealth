@@ -343,7 +343,7 @@ function setSubmitting(form, isSubmitting) {
 
 async function submitProfileSettings(event) {
   event.preventDefault();
-  const form = event.currentTarget;
+  const form = event.target;
   if (form.dataset.submitting) return;
   setSubmitting(form, true);
   setFormError(form);
@@ -367,7 +367,7 @@ async function submitProfileSettings(event) {
 
 async function submitPasswordSettings(event) {
   event.preventDefault();
-  const form = event.currentTarget;
+  const form = event.target;
   if (form.dataset.submitting) return;
   setFormError(form);
   const data = new FormData(form);

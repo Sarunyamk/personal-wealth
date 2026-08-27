@@ -63,6 +63,7 @@ database และ user account ไปช่วงท้าย หลังจ�
 - [x] หน้า Settings query profile เมื่อเปิดหน้า และใช้ DB row จาก `UPDATE ... SELECT` หลังบันทึกโดยไม่ยิงซ้ำ
 - [x] Supabase request มี timeout 15 วินาที ป้องกัน global loading ค้างตาม browser network timeout
 - [x] Settings integration เรียก service จริงและยืนยัน display name/currency ด้วย DB read-back
+- [x] browser integration login และ submit Settings ผ่าน production build ภายใน 5 วินาที พร้อมยืนยัน UI/DB read-back
 
 ### Phase D - Session and Security
 
